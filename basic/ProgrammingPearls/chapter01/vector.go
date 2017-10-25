@@ -1,26 +1,43 @@
 package main
 
-const bitsPerWord uint32 = 32 //int 有32位
-const shift uint32 = 5        //2^5=32,表示移位
-const mask uint32 = 0x1F      //二进制 1111
-const n uint32 = 10000000     //向量元素的个数
+//位向量的实现方法大体是：多个位组成一个基本数据类型，基本数据类型组合成数组
+
+const bitsPerWord uint32 = 32 //使用的基本数据类型为32位，int类型
+const shift uint32 = 5        //与确定位处于哪个数组元素有关 : 2^5=32,表示移位
+const mask uint32 = 0x1F      //与确定位处于数组元素哪一位有关: 二进制 11111
+const n uint32 = 10000000     //位长度：向量元素的个数
 
 //向量数组i
-var a = [1 + n/bitsPerWord]uint32{}
+//《编程珠玑》原书中是N/BITPERWORD + 1
+//如果N恰为BITPERWORD的倍数，那么又要浪费一个int的空间了
+//N取0时，仍会浪费一个int的空间
+//N非0非BITPERWORD的倍数时，最多是最后一个int不完全利用而已
+
+//go语言已经背后做了初始化零值处理
+var a = [1 + (n-1)/bitsPerWord]uint32{}
+
+//对位向量的操作主要有三个：对特定位置1，对特定位清0，判断特定位
+//下面来分析下以上代码。
+//	1）确定数组元素，即i/32，对于2的倍数的整除，我们可以使用位移运算，因为32=2^5，所以i/32=i>>5，故a[i>>SHIFT]确定了数组元素。
+//  2）确定数组元素后，我们要确定位的相对位置，即为i mod 32，观察，当对i执行右移（5位）运算时，把低5位消除了，而这低5位正是余数，因此可以通过i&0x1F，获得低5位的值，进而得到位的相对位置，故如i & MASK。
+//	3）确定位置后，我们进一步转成对应的位位置掩码，即1<<(i&MASK)。
+//通过以上三步，我们完成了定位的工作。
 
 //设值
+//因为是置1操作，所以只需要把原数组元素与位位置掩码进行或操作即可
 func set(i uint32) {
 	a[i>>shift] |= (1 << (i & mask))
 }
 
 //清零
+//因为是置0操作，所以先把位位置掩码取非，使特定位位0，再与原数组元素进行与操作即可
 func clr(i uint32) {
 	a[i>>shift] &= ^(1 << (i & mask))
 }
 
-//测试输出
-func test(i uint32) uint32 {
-	return a[i>>shift] & (1 << (i & mask))
+//判断特定位，只需要原始数组元素与位位置掩码进行与操作，即可判断当前位是否为1
+func test(i uint32) bool {
+	return (a[i>>shift] & (1 << (i & mask))) > 0
 }
 
 //下面的版本实现效果是一样的
@@ -36,18 +53,17 @@ func clr0(i uint32) {
 }
 
 //测试输出
-func test0(i uint32) uint32 {
-	return a[i/32] & (1 << (i % 32))
+func test0(i uint32) bool {
+	return (a[i/32] & (1 << (i % 32))) > 0
 }
 
 func main() {
 
-	ti := uint32(1026)
-	println(test(ti))
-	println("------------")
+	ti := uint32(50)
+	println("设置前是否存在？", test(ti))
 	set(ti)
-	println(test(ti))
+	println("设置后是否存在？", test(ti))
 	clr(ti)
-	println(test(ti))
+	println("清除后算法存在？", test(ti))
 
 }
