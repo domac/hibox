@@ -1,11 +1,10 @@
 package main
 
 func main() {
-
+	//初始化
 	whiteBeans := 101
 	totalBeans := 2*whiteBeans + 1
 
-	//初始化
 	blackBeans := 0
 
 	n := whiteBeans % 2
