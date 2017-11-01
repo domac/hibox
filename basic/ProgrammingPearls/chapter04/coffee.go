@@ -2,8 +2,8 @@ package main
 
 func main() {
 
-	totalBeans := 500
 	whiteBeans := 101
+	totalBeans := 2*whiteBeans + 1
 
 	//初始化
 	blackBeans := 0
