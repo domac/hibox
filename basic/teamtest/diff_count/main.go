@@ -3,20 +3,41 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 	"unsafe"
 )
 
 var splitB = []byte(":")
 
-var statsMap = make(map[string]int64, 4096)
+var statsMap = make(map[string]uint64, 4096)
+
+const intSize = 32 << (^uint(0) >> 63)
+const maxUint64 = (1<<64 - 1)
+
+var ErrRange = errors.New("value out of range")
+var ErrSyntax = errors.New("invalid syntax")
 
 func bytesToString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
+}
+
+func parseUint(s string) (uint64, error) {
+	var n uint64
+	var err error
+	i := 0
+	for ; i < len(s); i++ {
+		var v byte
+		d := s[i]
+		v = d - '0'
+		n *= uint64(10)
+		n1 := n + uint64(v)
+		n = n1
+	}
+	return n, err
 }
 
 func readAndHandleDataFile(filepath string) {
@@ -34,7 +55,7 @@ func readAndHandleDataFile(filepath string) {
 			idx := bytes.IndexByte(b, ':')
 			k := b[0:idx]
 			v := b[idx+1:]
-			count, _ := strconv.ParseInt(bytesToString(v), 10, 0)
+			count, _ := parseUint(bytesToString(v))
 			statsMap[string(k)] += count
 		}
 	}
