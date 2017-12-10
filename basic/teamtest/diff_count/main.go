@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-var statsMap = make(map[uint64]uint64, 1024)
-var nameMap = make(map[uint64]string, 1024)
+var statsMap = make(map[uint64]uint64, 128)
+var nameMap = make(map[uint64]string, 128)
 
 //自定义哈希函数
 func hashFunc(data []byte) uint64 {
@@ -26,7 +26,7 @@ func hashFunc(data []byte) uint64 {
 }
 
 //把字符数组转化为无符号整型
-func parsebyteToUint(b []byte) (n uint64) {
+func parsebyteToUint64(b []byte) (n uint64) {
 	for i := 0; i < len(b); i++ {
 		var v byte
 		d := b[i]
@@ -44,15 +44,13 @@ func readAndHandleDataFile(filepath string) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		f.Close()
-	}()
+	defer f.Close()
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		if b := s.Bytes(); b != nil {
 			idx := bytes.IndexByte(b, ':') //分隔符所在索引位置
 			hashVal := hashFunc(b[0:idx])  //计算哈希值
-			statsMap[hashVal] += parsebyteToUint(b[idx+1:])
+			statsMap[hashVal] += parsebyteToUint64(b[idx+1:])
 		}
 	}
 	log.Printf("read %s completed !\n", filepath)
