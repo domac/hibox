@@ -10,7 +10,24 @@ import (
 	"unsafe"
 )
 
-var statsMap = make(map[string]uint64, 4096)
+var statsMap = make(map[uint64]uint64, 4096)
+var nameMap = make(map[uint64]string, 256)
+
+func bytes64(data []byte) uint64 {
+	var v uint64 = 14695981039346656037
+	for _, c := range data {
+		v = (v ^ uint64(c)) * 1099511628211
+	}
+	return v
+}
+
+func hashFunc(data []byte) uint64 {
+	h := bytes64(data)
+	if _, ok := nameMap[h]; !ok {
+		nameMap[h] = string(data)
+	}
+	return h
+}
 
 func bytesToString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
@@ -43,7 +60,8 @@ func readAndHandleDataFile(filepath string) {
 	for s.Scan() {
 		if b := s.Bytes(); b != nil {
 			idx := bytes.IndexByte(b, ':')
-			statsMap[string(b[0:idx])] += parsebyteToUint(b[idx+1:])
+			hashVal := hashFunc(b[0:idx])
+			statsMap[hashVal] += parsebyteToUint(b[idx+1:])
 		}
 	}
 	log.Printf("read  %s completed !\n", filepath)
@@ -65,6 +83,6 @@ func main() {
 	log.Printf("total elapsed time: %f seconds", elapsed.Seconds())
 
 	for k, v := range statsMap {
-		fmt.Printf("[%s]:%d\n", k, v)
+		fmt.Printf("[%s]:%d\n", nameMap[k], v)
 	}
 }
