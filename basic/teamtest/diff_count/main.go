@@ -31,7 +31,7 @@ func readAndHandleDataFile(filepath string) {
 
 	for s.Scan() {
 		if b := s.Bytes(); b != nil {
-			idx := bytes.IndexRune(b, ':')
+			idx := bytes.IndexByte(b, ':')
 			k := b[0:idx]
 			v := b[idx+1:]
 			count, _ := strconv.ParseInt(bytesToString(v), 10, 0)
