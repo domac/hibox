@@ -8,11 +8,16 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"unsafe"
 )
 
 var splitB = []byte(":")
 
 var statsMap = make(map[string]int64, 4096)
+
+func bytesToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
 
 func readAndHandleDataFile(filepath string) {
 	f, err := os.Open(filepath)
@@ -26,9 +31,8 @@ func readAndHandleDataFile(filepath string) {
 
 	for s.Scan() {
 		if b := s.Bytes(); b != nil {
-			//readCh <- bytes.Split(b, splitB)
 			bs := bytes.Split(b, splitB)
-			v, _ := strconv.ParseInt(string(bs[1]), 10, 0)
+			v, _ := strconv.ParseInt(bytesToString(bs[1]), 10, 0)
 			statsMap[string(bs[0])] += v
 		}
 	}
@@ -43,6 +47,7 @@ func main() {
 	dataFile := args[1]
 
 	start := time.Now()
+	log.Println("read start")
 	if dataFile != "" {
 		readAndHandleDataFile(dataFile)
 	}
