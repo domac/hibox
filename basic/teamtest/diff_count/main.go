@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
-var statsMap = make(map[uint64]uint64, 128)
-var nameMap = make(map[uint64]string, 128)
+var statsMap = make(map[uint64]uint64, 256)
+var nameMap = make(map[uint64]string, 256)
 
 //自定义哈希函数
-func hashFunc(data []byte) uint64 {
+func hashBytes(data []byte) uint64 {
 	var h uint64 = 14695981039346656037
 	for _, c := range data {
 		h = (h ^ uint64(c)) * 1024
@@ -49,7 +49,7 @@ func readAndHandleDataFile(filepath string) {
 	for s.Scan() {
 		if b := s.Bytes(); b != nil {
 			idx := bytes.IndexByte(b, ':') //分隔符所在索引位置
-			hashVal := hashFunc(b[0:idx])  //计算哈希值
+			hashVal := hashBytes(b[0:idx]) //计算哈希值
 			statsMap[hashVal] += parsebyteToUint64(b[idx+1:])
 		}
 	}
