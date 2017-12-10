@@ -31,9 +31,11 @@ func readAndHandleDataFile(filepath string) {
 
 	for s.Scan() {
 		if b := s.Bytes(); b != nil {
-			bs := bytes.Split(b, splitB)
-			v, _ := strconv.ParseInt(bytesToString(bs[1]), 10, 0)
-			statsMap[string(bs[0])] += v
+			idx := bytes.IndexRune(b, ':')
+			k := b[0:idx]
+			v := b[idx+1:]
+			count, _ := strconv.ParseInt(bytesToString(v), 10, 0)
+			statsMap[string(k)] += count
 		}
 	}
 	log.Printf("read  %s completed !\n", filepath)
