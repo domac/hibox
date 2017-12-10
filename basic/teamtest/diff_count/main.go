@@ -26,10 +26,8 @@ func hashFunc(data []byte) uint64 {
 }
 
 //把字符数组转化为无符号整型
-func parsebyteToUint(b []byte) uint64 {
-	var n uint64
-	i := 0
-	for ; i < len(b); i++ {
+func parsebyteToUint(b []byte) (n uint64) {
+	for i := 0; i < len(b); i++ {
 		var v byte
 		d := b[i]
 		v = d - '0'
