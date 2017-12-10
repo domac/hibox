@@ -16,7 +16,7 @@ var nameMap = make(map[uint64]string, 128)
 func hashFunc(data []byte) uint64 {
 	var h uint64 = 14695981039346656037
 	for _, c := range data {
-		h = h ^ uint64(c)
+		h = (h ^ uint64(c)) * 1024
 	}
 
 	if _, ok := nameMap[h]; !ok {
