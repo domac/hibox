@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-var statsMap = make(map[uint64]uint64, 256)
-var nameMap = make(map[uint64]string, 256)
+var statsMap = make(map[uint64]uint64, 1024)
+var nameMap = make(map[uint64]string, 1024)
 
 //自定义哈希函数
 func hashBytes(data []byte) uint64 {
