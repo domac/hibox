@@ -1,9 +1,13 @@
 package brand
 
 import (
+	"bufio"
 	"errors"
-	"fmt"
+	"log"
+	"os"
 )
+
+var brand_db = make(map[uint64][]byte)
 
 //类目参考格式：
 //WyzKsCJkn CrOlZWxM
@@ -17,11 +21,28 @@ import (
 //IOotaK qPJXV EWAMpuuS AUVEQWtXGneBFjWAdJRlcA ROP_NH 266501671 2011-3-13
 //tYXjAeIYBBYC TXSajPTW CtdfXOrcCjSXSFxijJ ROP_HZ 89424310 2014-5-28
 
-func ReadAndHandle(dataFile string) error {
-	fmt.Printf("dataFile: %s\n", dataFile)
+func ReadAndHandle(brand_db string, dataFile string) error {
+	log.Printf("brand db: %s\n", brand_db)
+	log.Printf("dataFile: %s\n", dataFile)
 
 	if dataFile == "" {
 		return errors.New("data file is null")
 	}
+	println("------- start -------")
+	f, err := os.Open(dataFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		if b := s.Bytes(); b != nil {
+		}
+	}
 	return nil
+}
+
+//输出结果
+func ListResult() {
+	println("------- finish -------")
 }
