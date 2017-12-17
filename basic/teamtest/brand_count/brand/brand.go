@@ -2,6 +2,7 @@ package brand
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 )
 
 var brand_db = make(map[uint64][]byte)
+var TARGET_STORE = []byte("VIP_NH")
 
 //类目参考格式：
 //WyzKsCJkn CrOlZWxM
@@ -27,10 +29,6 @@ func ReadAndHandle(brand_db string, dataFile string) error {
 	log.Printf("brand db: %s\n", brand_db)
 	log.Printf("dataFile: %s\n", dataFile)
 
-	if dataFile == "" {
-		return errors.New("data file is null")
-	}
-
 	f, err := os.Open(dataFile)
 	if err != nil {
 		return err
@@ -40,10 +38,20 @@ func ReadAndHandle(brand_db string, dataFile string) error {
 	for s.Scan() {
 		if b := s.Bytes(); b != nil {
 			bs := genSpaceSplit(b)
-			fmt.Printf("%s\n", bs)
+
+			{ //限定上架年份和仓库
+				age := parsebyteToUint64(bs[0][2:4])
+				if bytes.Compare(bs[2], TARGET_STORE) == 0 && (age >= 11 && age < 17) {
+					fmt.Printf("%s\n", bs)
+				}
+			}
 		}
 	}
 	return nil
+}
+
+func handleSubject1(bs [][]byte) {
+
 }
 
 //输出结果

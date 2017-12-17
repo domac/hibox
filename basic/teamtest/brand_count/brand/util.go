@@ -33,3 +33,25 @@ func lasIndex(s []byte, c byte) int {
 	}
 	return -1
 }
+
+//自定义哈希函数
+func hashBytes(data []byte) uint64 {
+	var h uint64 = 14695981039346656037
+	for _, c := range data {
+		h = (h ^ uint64(c)) * 1024
+	}
+	return h
+}
+
+//把字符数组转化为无符号整型
+func parsebyteToUint64(b []byte) (n uint64) {
+	for i := 0; i < len(b); i++ {
+		var v byte
+		d := b[i]
+		v = d - '0'
+		n *= uint64(10)
+		n1 := n + uint64(v)
+		n = n1
+	}
+	return n
+}
