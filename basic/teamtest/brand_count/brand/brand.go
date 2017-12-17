@@ -3,7 +3,6 @@ package brand
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -12,18 +11,7 @@ import (
 var brand_db = make(map[uint64][]byte)
 var TARGET_STORE = []byte("VIP_NH")
 
-//类目参考格式：
-//WyzKsCJkn CrOlZWxM
-//rfpGUpcTNbYRMDN
-//yQGVedxIMRSOVtoJQJdNZ
-
-//数据参考格式 (104575830)
-//VcrmXKjrRfNT RISBDLzIjw aNCIkIHlhlgYZjwJmw ROP_HZ 128234034 2017-1-11
-//szCOOcbkHyHIqwSrQknnl BguGGGFuYWcQwwykS ROP_CD 273262040 2008-6-1
-//mLCdVg JrVirWHJkSGT EewUcdKFRxIdaxG ROP_HZ 504426487 2016-10-7
-//IOotaK qPJXV EWAMpuuS AUVEQWtXGneBFjWAdJRlcA ROP_NH 266501671 2011-3-13
-//tYXjAeIYBBYC TXSajPTW CtdfXOrcCjSXSFxijJ ROP_HZ 89424310 2014-5-28
-
+//数据文件读入处理
 func ReadAndHandle(brand_db string, dataFile string) error {
 	println("------- start -------")
 	log.Printf("brand db: %s\n", brand_db)
@@ -48,10 +36,6 @@ func ReadAndHandle(brand_db string, dataFile string) error {
 		}
 	}
 	return nil
-}
-
-func handleSubject1(bs [][]byte) {
-
 }
 
 //输出结果
