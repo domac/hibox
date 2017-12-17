@@ -25,12 +25,18 @@ func main() {
 		log.Fatalln("please input the data file path")
 		os.Exit(2)
 	}
+
 	start := time.Now()
-	err := b.ReadAndHandle(args[len(args)-2], args[len(args)-1])
+	b.InitKeys(args[len(args)-2])
+	elapsed := time.Now().Sub(start)
+	log.Printf("init elapsed time: %f seconds", elapsed.Seconds())
+
+	start = time.Now()
+	err := b.ReadAndHandle(args[len(args)-1])
 	if err != nil {
 		log.Fatalln(err)
 	}
-	elapsed := time.Now().Sub(start)
-	log.Printf("total elapsed time: %f seconds", elapsed.Seconds())
+	elapsed = time.Now().Sub(start)
+	log.Printf("read elapsed time: %f seconds", elapsed.Seconds())
 	b.ListResult()
 }
