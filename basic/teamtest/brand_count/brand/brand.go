@@ -62,7 +62,7 @@ func getArrayMinValue(filterkey uint64) (BrandItem, int) {
 	return minItem, minidx
 }
 
-func sendToTopList(name string, hashKey, brandValue uint64) {
+func sendToTopList(name []byte, hashKey, brandValue uint64) {
 	idx, ok := topMap[hashKey]
 	if !ok {
 		minItem, mIndex := getArrayMinValue(hashKey)
@@ -81,7 +81,7 @@ func sendToTopList(name string, hashKey, brandValue uint64) {
 			tempKey := minItem.HashKey
 			minItem.HashKey = hashKey
 			minItem.TotalValue = brandValue
-			minItem.Name = name
+			minItem.Name = string(name)
 			delete(topMap, tempKey)
 			topMap[hashKey] = mIndex
 			toplist[mIndex] = minItem
@@ -113,7 +113,7 @@ func ReadAndHandle(dataFile string) error {
 					hashKey := hashBytes(name)
 					current_brand_value := BRANDDB[hashKey] + parsebyteToUint64(bs[1])
 					BRANDDB[hashKey] = current_brand_value
-					sendToTopList(string(name), hashKey, current_brand_value)
+					sendToTopList(name, hashKey, current_brand_value)
 				}
 			}
 		}
@@ -123,7 +123,6 @@ func ReadAndHandle(dataFile string) error {
 
 //输出结果
 func ListResult() {
-	fmt.Println("------- finish -------")
 	values := make([]BrandItem, TOPNUM)
 	for i, item := range toplist {
 		values[i] = item
@@ -137,6 +136,7 @@ func ListResult() {
 	}
 	topMap = nil
 	BRANDDB = nil
+	fmt.Println("------- finish -------")
 }
 
 //快速排序:从大到小
