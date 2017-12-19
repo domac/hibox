@@ -59,6 +59,16 @@ func getArrayMinOnlineValue(filterkey uint64) (BrandItem, int) {
 		if toplist[i].OnlineCount < minItem.OnlineCount {
 			minItem = toplist[i]
 			minidx = i
+		} else if toplist[i].OnlineCount == minItem.OnlineCount {
+			if toplist[i].TotalValue < minItem.TotalValue {
+				minItem = toplist[i]
+				minidx = i
+			} else if toplist[i].TotalValue == minItem.TotalValue {
+				if BRANDKEYS[toplist[i].HashKey] > BRANDKEYS[minItem.HashKey] {
+					minItem = toplist[i]
+					minidx = i
+				}
+			}
 		}
 	}
 	return minItem, minidx
@@ -143,14 +153,27 @@ func ListResult() {
 		values[i] = item
 	}
 	quickSort(values, 0, len(values)-1)
+
+	//多维度排序
+	// for i := 1; i < len(values); i++ {
+	// 	if values[i-1].OnlineCount == values[i].OnlineCount {
+	// 		if values[i-1].TotalValue < values[i].TotalValue {
+	// 			values[i-1], values[i] = values[i], values[i-1]
+	// 		} else if values[i-1].TotalValue == values[i].TotalValue {
+	// 			if BRANDKEYS[values[i-1].HashKey] > BRANDKEYS[values[i].HashKey] {
+	// 				values[i-1], values[i] = values[i], values[i-1]
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	//结果输出
 	for i, item := range values {
 		if item.HashKey == 0 {
 			continue
 		}
-		fmt.Printf("(%d) name: %s | value: %d\n", (i + 1), item.Name, item.OnlineCount)
+		fmt.Printf("(%d) name: %s | count: %d value:%d \n", (i + 1), item.Name, item.OnlineCount, item.TotalValue)
 	}
-	topMap = nil
-	BRANDDB = nil
 	fmt.Println("------- finish -------")
 }
 

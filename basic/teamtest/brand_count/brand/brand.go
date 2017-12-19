@@ -57,6 +57,11 @@ func getArrayMinValue(filterkey uint64) (BrandItem, int) {
 		if toplist[i].TotalValue < minItem.TotalValue {
 			minItem = toplist[i]
 			minidx = i
+		} else if toplist[i].TotalValue == minItem.TotalValue {
+			if BRANDKEYS[toplist[i].HashKey] > BRANDKEYS[minItem.HashKey] {
+				minItem = toplist[i]
+				minidx = i
+			}
 		}
 	}
 	return minItem, minidx
