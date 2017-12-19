@@ -63,6 +63,7 @@ func ReadAndHandle(dataFile string) error {
 	}
 	defer f.Close()
 	s := bufio.NewScanner(f)
+	s.Split(MyScanLines)
 	for s.Scan() {
 		b := s.Bytes()
 		lenB := len(b)
@@ -75,6 +76,7 @@ func ReadAndHandle(dataFile string) error {
 
 		age := b[index1+4]
 
+		//11~16
 		if age != 54 && age != 53 && age != 52 && age != 51 && age != 50 && age != 49 {
 			continue
 		}
@@ -170,7 +172,7 @@ func compareTopList() {
 
 //输出结果
 func ListResult() {
-	fmt.Println("------- finish -------")
+
 	values := []BrandItem{}
 	for _, item := range toplist {
 		if item.xh < 0 {
@@ -187,6 +189,7 @@ func ListResult() {
 		}
 		fmt.Printf("(%d) name: %s | value: %d | xh: %d\n", (i + 1), item.Name, item.TotalValue, item.xh)
 	}
+	fmt.Println("------- finish -------")
 }
 
 func compareSort(arr []BrandItem) {

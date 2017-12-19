@@ -1,8 +1,7 @@
 package brand
 
 import (
-	"reflect"
-	"unsafe"
+	"bytes"
 )
 
 const FIELDS_IDX = 4
@@ -91,13 +90,15 @@ func parsebyteToInt(b []byte) (n int) {
 	return n
 }
 
-func String(b []byte) (s string) {
-	if len(b) == 0 {
-		return ""
+func MyScanLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
 	}
-	pbytes := (*reflect.SliceHeader)(unsafe.Pointer(&b))
-	pstring := (*reflect.StringHeader)(unsafe.Pointer(&s))
-	pstring.Data = pbytes.Data
-	pstring.Len = pbytes.Len
-	return
+	if i := bytes.IndexByte(data, '\n'); i > 0 {
+		return i + 1, data[0:i], nil
+	}
+	if atEOF {
+		return len(data), data, nil
+	}
+	return 0, nil, nil
 }
