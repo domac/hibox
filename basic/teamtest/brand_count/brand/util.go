@@ -1,5 +1,10 @@
 package brand
 
+import (
+	"reflect"
+	"unsafe"
+)
+
 const FIELDS_IDX = 4
 
 //自定义反向分隔处理
@@ -84,4 +89,15 @@ func parsebyteToInt(b []byte) (n int) {
 		n = n1
 	}
 	return n
+}
+
+func String(b []byte) (s string) {
+	if len(b) == 0 {
+		return ""
+	}
+	pbytes := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+	pstring := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	pstring.Data = pbytes.Data
+	pstring.Len = pbytes.Len
+	return
 }

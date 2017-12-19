@@ -36,7 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	//b.ListResult()
+	b.ListResult()
 	elapsed = time.Now().Sub(start)
 	log.Printf("read elapsed time: %f seconds", elapsed.Seconds())
 }
