@@ -4,31 +4,6 @@ import (
 	"bytes"
 )
 
-const FIELDS_IDX = 4
-
-//自定义反向分隔处理
-//s[0]: 日期
-//s[1]: 销售额
-//s[2]: 仓库
-//s[3]: 描述
-//s[4]: 品牌
-func genSpaceSplit(s []byte) [][]byte {
-	//预分配数组
-	a := make([][]byte, FIELDS_IDX+2)
-	i := 0
-	for i < FIELDS_IDX {
-		m := lasIndex(s, ' ')
-		if m < 0 {
-			break
-		}
-		a[i] = s[m+1:]
-		s = s[:m]
-		i++
-	}
-	a[i] = s
-	return a[:i+1]
-}
-
 func lasIndex(s []byte, c byte) int {
 	for i := len(s) - 1; i >= 1; i-- {
 		if s[i] == c {
@@ -40,15 +15,6 @@ func lasIndex(s []byte, c byte) int {
 
 func lasIndexN(s []byte, n int, c byte) int {
 	for i := len(s) - n; i >= 1; i-- {
-		if s[i] == c {
-			return i
-		}
-	}
-	return -1
-}
-
-func lasIndexSE(s []byte, n int, begin int, c byte) int {
-	for i := len(s) - n; i >= begin; i-- {
 		if s[i] == c {
 			return i
 		}
@@ -94,7 +60,7 @@ func MyScanLines(data []byte, atEOF bool) (advance int, token []byte, err error)
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
-	if i := bytes.IndexByte(data, '\n'); i > 0 {
+	if i := bytes.IndexByte(data, 10); i > 0 {
 		return i + 1, data[0:i], nil
 	}
 	if atEOF {

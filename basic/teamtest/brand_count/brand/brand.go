@@ -66,7 +66,6 @@ func ReadAndHandle(dataFile string) error {
 	s.Split(MyScanLines)
 	for s.Scan() {
 		b := s.Bytes()
-		lenB := len(b)
 		index1 := lasIndexN(b, 9, 32)
 		//onlineDate := b[index1+1:]
 
@@ -81,7 +80,7 @@ func ReadAndHandle(dataFile string) error {
 			continue
 		}
 
-		len1 := (lenB - index1 - 1)
+		len1 := (len(b) - index1 - 1)
 		index2 := lasIndexN(b, len1+2, 32)
 		price := b[index2+1 : index1]
 
