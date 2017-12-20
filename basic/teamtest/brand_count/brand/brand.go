@@ -118,7 +118,6 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 
 		if minItemTotalValue > currentValue {
 			compareTopList()
-			minItem = toplist[0]
 		}
 
 		if minItemTotalValue < currentValue {
