@@ -116,16 +116,15 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 			minItemTotalValue = BRANDDB[minItem.xh]
 		}
 
-		if minItemTotalValue > currentValue {
-			compareTopList()
-		}
-
 		if minItemTotalValue < currentValue {
 			isReplace = true
 		} else if minItemTotalValue == currentValue {
 			if minItem.xh > xh {
 				isReplace = true
 			}
+		} else {
+			compareTopList()
+			return
 		}
 		if isReplace {
 			tempKey := minItem.HashKey
@@ -165,7 +164,10 @@ func compareTopList() {
 			}
 		}
 	}
-	toplist[0], toplist[minidx] = toplist[minidx], toplist[0]
+
+	if minidx > 0 {
+		toplist[0], toplist[minidx] = toplist[minidx], toplist[0]
+	}
 }
 
 //输出结果
