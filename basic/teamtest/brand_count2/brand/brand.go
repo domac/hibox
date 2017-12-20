@@ -11,25 +11,21 @@ const TOPNUM = 40
 
 //全局变量
 var (
-	BRANDKEYS    = make(map[uint64]int, 1024*1024*20)
-	BRANDDB      = make(map[uint64]uint64, 1024*1024)
-	topMap       = make(map[uint64]int)
-	toplist      [TOPNUM]BrandItem
-	ONLINESMAP   = make(map[uint64]bool)
-	ONLINESCOUNT = make(map[uint64]uint64)
+	BRANDKEYS = make(map[uint64]int, 30000000)
+	ONLINEDB  = make(map[uint64]int, 0)
+	BRANDDB   = []int{}
+	toplist   [TOPNUM]BrandItem
 )
 
 type BrandItem struct {
-	Name        string
-	TotalValue  uint64
-	HashKey     uint64
-	OnlineCount uint64
+	Name    string
+	HashKey uint64
+	xh      int
 
-	seq int
+	TotalValue int
 }
 
 func InitKeys(dataFile string) error {
-
 	f, err := os.Open(dataFile)
 	if err != nil {
 		return err
@@ -37,8 +33,6 @@ func InitKeys(dataFile string) error {
 	defer f.Close()
 	s := bufio.NewScanner(f)
 	idx := 0
-	tmp := make(map[uint64]bool)
-	tmp[uint64(1)] = true
 	for s.Scan() {
 		if b := s.Bytes(); b != nil {
 			//逆向切割
@@ -47,63 +41,20 @@ func InitKeys(dataFile string) error {
 			idx++
 		}
 	}
+	keysLen := idx
+	BRANDDB = make([]int, keysLen, keysLen)
+	ONLINEDB = make(map[uint64]int, keysLen*3)
+
+	for i := 0; i < keysLen; i++ {
+		BRANDDB[i] = 0
+	}
+
+	for i := 0; i < TOPNUM; i++ {
+		toplist[i] = BrandItem{
+			xh: -1,
+		}
+	}
 	return nil
-}
-
-//获取数组的最小项
-func getArrayMinOnlineValue(filterkey uint64) (BrandItem, int) {
-	minItem := toplist[0]
-	minidx := 0
-	ilen := len(toplist)
-	for i := 1; i < ilen; i++ {
-		if toplist[i].OnlineCount < minItem.OnlineCount {
-			minItem = toplist[i]
-			minidx = i
-		} else if toplist[i].OnlineCount == minItem.OnlineCount {
-			if toplist[i].TotalValue < minItem.TotalValue {
-				minItem = toplist[i]
-				minidx = i
-			} else if toplist[i].TotalValue == minItem.TotalValue {
-				if BRANDKEYS[toplist[i].HashKey] > BRANDKEYS[minItem.HashKey] {
-					minItem = toplist[i]
-					minidx = i
-				}
-			}
-		}
-	}
-	return minItem, minidx
-}
-
-func sendToTopOnlineList(name, onlineDate []byte, hashKey, nameCount, brandValue uint64) {
-	idx, ok := topMap[hashKey]
-	if !ok {
-		minItem, mIndex := getArrayMinOnlineValue(hashKey)
-		isRelpace := false
-		if nameCount > minItem.OnlineCount {
-			isRelpace = true
-		} else if nameCount == minItem.OnlineCount {
-			if brandValue > minItem.TotalValue {
-				isRelpace = true
-			} else if brandValue == minItem.TotalValue {
-				if BRANDKEYS[hashKey] < BRANDKEYS[minItem.HashKey] {
-					isRelpace = true
-				}
-			}
-		}
-		if isRelpace {
-			tempKey := minItem.HashKey
-			minItem.HashKey = hashKey
-			minItem.TotalValue = brandValue
-			minItem.OnlineCount = nameCount
-			minItem.Name = string(name)
-			delete(topMap, tempKey)
-			topMap[hashKey] = mIndex
-			toplist[mIndex] = minItem
-		}
-	} else {
-		toplist[idx].TotalValue = brandValue
-		toplist[idx].OnlineCount = nameCount
-	}
 }
 
 //数据文件读入处理
@@ -117,89 +68,37 @@ func ReadAndHandle(dataFile string) error {
 	s := bufio.NewScanner(f)
 
 	for s.Scan() {
-		if b := s.Bytes(); b != nil {
-			//逆向切割
-			bs := genSpaceSplit(b)
+		b := s.Bytes()
+		index1 := lasIndexN(b, 9, 32)
+		index2 := lasIndexIdx(b, index1, 32)
+		index3 := lasIndexIdx(b, index2, 32)
+		index4 := lasIndexIdx(b, index3, 32)
 
-			{ //限定上架天数最多的品牌
-				onlineDate := bs[0] //上线日期
-				name := bs[4]
+		//基础数据
+		name := b[:index4]
+		hashKey := hashBytes(name)
+		if xh, ok := BRANDKEYS[hashKey]; ok {
+			onlineDate := b[index1+1:]
+			price := b[index2+1 : index1]
+			combineHashHey := combinehashBytes(onlineDate, xh)
 
-				hashKey := hashBytes(name)
-				current_brand_value := BRANDDB[hashKey] + parsebyteToUint64(bs[1])
-				BRANDDB[hashKey] = current_brand_value
-				//实时处理
+			currentValue := BRANDDB[xh] + parsebyteToInt(price)
+			BRANDDB[xh] = currentValue
 
-				sarray := combineArray(name, onlineDate)
-				combineKey := hashBytes(sarray)
+			ONLINEDB[combineHashHey] = 1
 
-				if _, ok := ONLINESMAP[combineKey]; !ok {
-
-					ONLINESMAP[combineKey] = true
-					nameCount := ONLINESCOUNT[hashKey] + 1
-					ONLINESCOUNT[hashKey] = nameCount
-					sendToTopOnlineList(name, onlineDate, hashKey, nameCount, current_brand_value)
-				}
-			}
+			updateTopList(name, hashKey, combineHashHey, xh, currentValue)
 		}
 	}
+
 	return nil
+}
+
+func updateTopList(name []byte, hashKey, combineHashHey uint64, xh, currentValue int) {
+
 }
 
 //输出结果
 func ListResult() {
-	values := make([]BrandItem, TOPNUM)
-	for i, item := range toplist {
-		values[i] = item
-	}
-	quickSort(values, 0, len(values)-1)
-
-	//多维度排序
-	// for i := 1; i < len(values); i++ {
-	// 	if values[i-1].OnlineCount == values[i].OnlineCount {
-	// 		if values[i-1].TotalValue < values[i].TotalValue {
-	// 			values[i-1], values[i] = values[i], values[i-1]
-	// 		} else if values[i-1].TotalValue == values[i].TotalValue {
-	// 			if BRANDKEYS[values[i-1].HashKey] > BRANDKEYS[values[i].HashKey] {
-	// 				values[i-1], values[i] = values[i], values[i-1]
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	//结果输出
-	for i, item := range values {
-		if item.HashKey == 0 {
-			continue
-		}
-		fmt.Printf("(%d) name: %s | count: %d value:%d \n", (i + 1), item.Name, item.OnlineCount, item.TotalValue)
-	}
 	fmt.Println("------- finish -------")
-}
-
-//快速排序:从大到小
-func quickSort(arr []BrandItem, start, end int) {
-	if start < end {
-		i, j := start, end
-		key := arr[(start+end)/2].OnlineCount
-		for i <= j {
-			for arr[i].OnlineCount > key {
-				i++
-			}
-			for arr[j].OnlineCount < key {
-				j--
-			}
-			if i <= j {
-				arr[i], arr[j] = arr[j], arr[i]
-				i++
-				j--
-			}
-		}
-		if start < j {
-			quickSort(arr, start, j)
-		}
-		if end > i {
-			quickSort(arr, i, end)
-		}
-	}
 }

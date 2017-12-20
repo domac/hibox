@@ -69,9 +69,9 @@ func ReadAndHandle(dataFile string) error {
 		index1 := lasIndexN(b, 9, 32)
 		//onlineDate := b[index1+1:]
 
-		if b[index1+3] != 49 {
-			continue
-		}
+		// if b[index1+3] != 49 {
+		// 	continue
+		// }
 
 		age := b[index1+4]
 
@@ -115,6 +115,12 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 		if minItem.xh >= 0 {
 			minItemTotalValue = BRANDDB[minItem.xh]
 		}
+
+		if minItemTotalValue > currentValue {
+			compareTopList()
+			minItem = toplist[0]
+		}
+
 		if minItemTotalValue < currentValue {
 			isReplace = true
 		} else if minItemTotalValue == currentValue {
@@ -130,7 +136,6 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 			toplist[0] = minItem
 			topMap[tempKey] = 0
 			topMap[hashKey] = 1
-			compareTopList()
 		}
 	}
 }
