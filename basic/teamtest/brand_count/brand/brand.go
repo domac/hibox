@@ -80,22 +80,17 @@ func ReadAndHandle(dataFile string) error {
 			continue
 		}
 
-		len1 := (len(b) - index1 - 1)
-		index2 := lasIndexN(b, len1+2, 32)
+		index2 := lasIndexIdx(b, index1, 32)
 		price := b[index2+1 : index1]
 
-		len2 := index1 - index2 - 1
-		len21 := len1 + len2
-		index3 := lasIndexN(b, len21+6, 32)
-		//store := b[index3+1 : index2]
+		index3 := lasIndexIdx(b, index2, 32)
 
 		//not equals 'N'
 		if b[index3+5] != 78 {
 			continue
 		}
 
-		len3 := index2 - index3 - 1
-		index4 := lasIndexN(b, len21+len3+5, 32)
+		index4 := lasIndexIdx(b, index3, 32)
 		name := b[:index4]
 
 		hashKey := hashBytes(name)

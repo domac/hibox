@@ -22,6 +22,15 @@ func lasIndexN(s []byte, n int, c byte) int {
 	return -1
 }
 
+func lasIndexIdx(s []byte, idx int, c byte) int {
+	for i := idx - 1; i >= 1; i-- {
+		if s[i] == c {
+			return i
+		}
+	}
+	return -1
+}
+
 //自定义哈希函数
 func hashBytes(data []byte) uint64 {
 	var h uint64 = 14695981039346656037
