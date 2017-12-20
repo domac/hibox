@@ -107,6 +107,11 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 
 	flag, ok := topMap[hashKey]
 	if !ok || flag == 0 {
+
+		if len(topMap) < TOPNUM {
+			compareTopList()
+		}
+
 		minItem := toplist[0]
 
 		isReplace := false
@@ -131,6 +136,7 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 			toplist[0] = minItem
 			topMap[tempKey] = 0
 			topMap[hashKey] = 1
+
 		}
 	} else {
 		compareTopList()
@@ -139,6 +145,11 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 
 func compareTopList() {
 	minItem := toplist[0]
+
+	if minItem.xh < 0 {
+		return
+	}
+
 	minidx := 0
 	ilen := len(toplist)
 	for i := 1; i < ilen; i++ {
@@ -162,6 +173,7 @@ func compareTopList() {
 				minidx = i
 			}
 		}
+
 	}
 
 	if minidx > 0 {

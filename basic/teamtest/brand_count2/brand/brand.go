@@ -15,6 +15,7 @@ var (
 	ONLINEDB  = make(map[uint64]int, 0)
 	BRANDDB   = []int{}
 	toplist   [TOPNUM]BrandItem
+	topMap    = make(map[uint64]int)
 )
 
 type BrandItem struct {
@@ -95,6 +96,35 @@ func ReadAndHandle(dataFile string) error {
 }
 
 func updateTopList(name []byte, hashKey, combineHashHey uint64, xh, currentValue int) {
+	flag, ok := topMap[hashKey]
+	if !ok || flag == 0 {
+
+		minItem := toplist[0]
+
+		isReplace := false
+
+		minItemTotalValue := 0
+		if minItem.xh >= 0 {
+			minItemTotalValue = BRANDDB[minItem.xh]
+		}
+		if minItemTotalValue < currentValue {
+			isReplace = true
+		} else if minItemTotalValue == currentValue {
+			if minItem.xh > xh {
+				isReplace = true
+			}
+		}
+
+		if isReplace {
+
+		}
+
+	} else {
+		compareTopList()
+	}
+}
+
+func compareTopList() {
 
 }
 
