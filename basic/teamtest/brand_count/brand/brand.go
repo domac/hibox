@@ -122,9 +122,6 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 			if minItem.xh > xh {
 				isReplace = true
 			}
-		} else {
-			compareTopList()
-			return
 		}
 		if isReplace {
 			tempKey := minItem.HashKey
@@ -135,6 +132,8 @@ func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
 			topMap[tempKey] = 0
 			topMap[hashKey] = 1
 		}
+	} else {
+		compareTopList()
 	}
 }
 
