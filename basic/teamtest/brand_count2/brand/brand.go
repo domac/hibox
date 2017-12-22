@@ -11,11 +11,14 @@ const TOPNUM = 40
 
 //全局变量
 var (
-	BRANDKEYS = make(map[uint64]int, 30000000)
-	ONLINEDB  = make(map[uint64]int, 0)
-	BRANDDB   = []int{}
-	toplist   [TOPNUM]BrandItem
-	topMap    = make(map[uint64]int)
+	BRANDKEYS  = make(map[uint64]int, 30000000)
+	ONLINESMAP = make(map[uint64]bool, 10000000)
+	BRANDDB    = []int{}
+	toplist    [TOPNUM]BrandItem
+	//topMap     = make(map[uint64]int)
+
+	dataList  = []int{}
+	namedList = []string{}
 )
 
 type BrandItem struct {
@@ -23,6 +26,7 @@ type BrandItem struct {
 	HashKey uint64
 	xh      int
 
+	DateCount  int
 	TotalValue int
 }
 
@@ -44,10 +48,13 @@ func InitKeys(dataFile string) error {
 	}
 	keysLen := idx
 	BRANDDB = make([]int, keysLen, keysLen)
-	ONLINEDB = make(map[uint64]int, keysLen*3)
+	dataList = make([]int, keysLen, keysLen)
+	namedList = make([]string, keysLen, keysLen)
 
 	for i := 0; i < keysLen; i++ {
 		BRANDDB[i] = 0
+		dataList[i] = 0
+		namedList[i] = ""
 	}
 
 	for i := 0; i < TOPNUM; i++ {
@@ -68,6 +75,8 @@ func ReadAndHandle(dataFile string) error {
 	defer f.Close()
 	s := bufio.NewScanner(f)
 
+	//公共临时变量
+
 	for s.Scan() {
 		b := s.Bytes()
 		index1 := lasIndexN(b, 9, 32)
@@ -78,57 +87,116 @@ func ReadAndHandle(dataFile string) error {
 		//基础数据
 		name := b[:index4]
 		hashKey := hashBytes(name)
+
 		if xh, ok := BRANDKEYS[hashKey]; ok {
 			onlineDate := b[index1+1:]
 			price := b[index2+1 : index1]
 			combineHashHey := combinehashBytes(onlineDate, xh)
-
 			currentValue := BRANDDB[xh] + parsebyteToInt(price)
 			BRANDDB[xh] = currentValue
-
-			ONLINEDB[combineHashHey] = 1
-
-			updateTopList(name, hashKey, combineHashHey, xh, currentValue)
+			//updateTopList(name, hashKey, combineHashHey, xh, currentValue)
+			if _, ok := ONLINESMAP[combineHashHey]; !ok {
+				ONLINESMAP[combineHashHey] = true
+				dv := dataList[xh] + 1
+				dataList[xh] = dv
+				if dv == 1 {
+					namedList[xh] = string(name)
+				}
+			}
 		}
 	}
 
 	return nil
 }
 
-func updateTopList(name []byte, hashKey, combineHashHey uint64, xh, currentValue int) {
-	flag, ok := topMap[hashKey]
-	if !ok || flag == 0 {
-
-		minItem := toplist[0]
-
-		isReplace := false
-
-		minItemTotalValue := 0
-		if minItem.xh >= 0 {
-			minItemTotalValue = BRANDDB[minItem.xh]
-		}
-		if minItemTotalValue < currentValue {
-			isReplace = true
-		} else if minItemTotalValue == currentValue {
-			if minItem.xh > xh {
-				isReplace = true
-			}
-		}
-
-		if isReplace {
-
-		}
-
-	} else {
-		compareTopList()
-	}
-}
-
-func compareTopList() {
-
-}
-
 //输出结果
 func ListResult() {
+
+	ONLINESMAP = nil
+	values := make([]BrandItem, len(BRANDKEYS), len(BRANDKEYS))
+
+	cid := 0
+	for _, idx := range BRANDKEYS {
+		d := dataList[idx]
+		tv := BRANDDB[idx]
+		name := namedList[idx]
+
+		if d > 2000 {
+			values[cid] = BrandItem{Name: name, TotalValue: tv, DateCount: d, xh: idx}
+			cid++
+		}
+	}
+	quickSort(values, 0, len(values)-1)
+
+	newCount := TOPNUM + 5
+	values2 := []BrandItem{}
+	for i := 0; i < newCount; i++ {
+		vi := values[i]
+		values2 = append(values2, vi)
+	}
+
+	//values2 = compareSortValue(values2)
+
+	for i := 0; i < 40; i++ {
+		currentItem := values2[i]
+		fmt.Printf("%d) %s, dateCount: %d, value: %d, xh: %d \n", i+1, currentItem.Name, currentItem.DateCount, currentItem.TotalValue, currentItem.xh)
+	}
+
 	fmt.Println("------- finish -------")
+}
+
+// func compareSortValue(arr []BrandItem) []BrandItem {
+// 	lenS := len(arr)
+// 	for i := 0; i < lenS-1; i++ {
+// 		tempA := arr[i]
+// 		for j := i + 1; j < lenS; j++ {
+// 			tempB := arr[j]
+// 			if tempA.DateCount == tempB.DateCount {
+// 				if tempA.TotalValue < tempB.TotalValue {
+// 					arr[i], arr[j] = arr[j], arr[i]
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return arr
+// }
+
+// func compareSortXh(arr []BrandItem) []BrandItem {
+// 	lenS := len(arr)
+// 	for i := 0; i < lenS-1; i++ {
+// 		if arr[i].TotalValue == arr[i+1].TotalValue {
+// 			if arr[i].xh > arr[i+1].xh {
+// 				arr[i], arr[i+1] = arr[i+1], arr[i]
+// 				i--
+// 			}
+// 		}
+// 	}
+// 	return arr
+// }
+
+func quickSort(arr []BrandItem, start, end int) {
+	if start < end {
+		i, j := start, end
+		key := arr[(start+end)/2].DateCount
+		for i <= j {
+			for arr[i].DateCount > key {
+				i++
+			}
+			for arr[j].DateCount < key {
+				j--
+			}
+			if i <= j {
+				arr[i], arr[j] = arr[j], arr[i]
+				i++
+				j--
+			}
+		}
+		if start < j {
+			quickSort(arr, start, j)
+		}
+		if end > i {
+			quickSort(arr, i, end)
+		}
+	}
+
 }

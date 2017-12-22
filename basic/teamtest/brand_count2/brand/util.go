@@ -74,7 +74,7 @@ func combineArray(a, b []byte) []byte {
 func combinehashBytes(data []byte, xh int) uint64 {
 	var h uint64 = 14695981039346656037
 	for _, c := range data {
-		h = (h ^ uint64(c)) * 10245 * uint64(xh)
+		h = (h ^ uint64(c)) * 1099511628211
 	}
-	return h
+	return h + uint64(xh)
 }
