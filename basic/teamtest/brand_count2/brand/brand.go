@@ -87,14 +87,11 @@ func ReadAndHandle(dataFile string) error {
 		//基础数据
 		name := b[:index4]
 		hashKey := hashBytes(name)
-
 		if xh, ok := BRANDKEYS[hashKey]; ok {
 			onlineDate := b[index1+1:]
 			price := b[index2+1 : index1]
 			combineHashHey := combinehashBytes(onlineDate, xh)
-			currentValue := BRANDDB[xh] + parsebyteToInt(price)
-			BRANDDB[xh] = currentValue
-			//updateTopList(name, hashKey, combineHashHey, xh, currentValue)
+			BRANDDB[xh] += parsebyteToInt(price)
 			if _, ok := ONLINESMAP[combineHashHey]; !ok {
 				ONLINESMAP[combineHashHey] = true
 				dv := dataList[xh] + 1
@@ -121,7 +118,7 @@ func ListResult() {
 		tv := BRANDDB[idx]
 		name := namedList[idx]
 
-		if d > 2000 {
+		if d > 1000 {
 			values[cid] = BrandItem{Name: name, TotalValue: tv, DateCount: d, xh: idx}
 			cid++
 		}
@@ -135,9 +132,10 @@ func ListResult() {
 		values2 = append(values2, vi)
 	}
 
-	//values2 = compareSortValue(values2)
+	values2 = compareSortValue(values2)
+	values2 = compareSortXh(values2)
 
-	for i := 0; i < 40; i++ {
+	for i := 0; i < TOPNUM; i++ {
 		currentItem := values2[i]
 		fmt.Printf("%d) %s, dateCount: %d, value: %d, xh: %d \n", i+1, currentItem.Name, currentItem.DateCount, currentItem.TotalValue, currentItem.xh)
 	}
@@ -145,34 +143,96 @@ func ListResult() {
 	fmt.Println("------- finish -------")
 }
 
-// func compareSortValue(arr []BrandItem) []BrandItem {
-// 	lenS := len(arr)
-// 	for i := 0; i < lenS-1; i++ {
-// 		tempA := arr[i]
-// 		for j := i + 1; j < lenS; j++ {
-// 			tempB := arr[j]
-// 			if tempA.DateCount == tempB.DateCount {
-// 				if tempA.TotalValue < tempB.TotalValue {
-// 					arr[i], arr[j] = arr[j], arr[i]
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return arr
-// }
+func compareSortValue(arr []BrandItem) []BrandItem {
+	lenS := len(arr)
+	currentDateCount := arr[0].DateCount
+	currentStartIndex := 0
+	for i := 1; i < lenS; i++ {
+		targetDateCount := arr[i].DateCount
+		if currentDateCount == targetDateCount {
+			//currentStartIndex++
+		} else if currentDateCount > targetDateCount {
+			currentDateCount = targetDateCount
+			quickSubValueArray(arr, currentStartIndex, i-1)
+			currentStartIndex = i
+		}
+	}
+	return arr
+}
 
-// func compareSortXh(arr []BrandItem) []BrandItem {
-// 	lenS := len(arr)
-// 	for i := 0; i < lenS-1; i++ {
-// 		if arr[i].TotalValue == arr[i+1].TotalValue {
-// 			if arr[i].xh > arr[i+1].xh {
-// 				arr[i], arr[i+1] = arr[i+1], arr[i]
-// 				i--
-// 			}
-// 		}
-// 	}
-// 	return arr
-// }
+func compareSortXh(arr []BrandItem) []BrandItem {
+	lenS := len(arr)
+	currentDateCount := arr[0].DateCount
+	currentTotalValue := arr[0].TotalValue
+	currentStartIndex := 0
+
+	for i := 1; i < lenS; i++ {
+		targetDateCount := arr[i].DateCount
+		targetTotalValue := arr[i].TotalValue
+
+		if currentDateCount == targetDateCount && currentTotalValue == targetTotalValue {
+
+		} else if currentDateCount > targetDateCount || currentTotalValue > targetTotalValue {
+			currentDateCount = targetDateCount
+			currentTotalValue = targetTotalValue
+			quickSubXhArray(arr, currentStartIndex, i-1)
+			currentStartIndex = i
+		}
+	}
+	return arr
+}
+
+func quickSubValueArray(arr []BrandItem, start, end int) {
+	if start < end {
+		i, j := start, end
+		key := arr[(start+end)/2].TotalValue
+		for i <= j {
+			for arr[i].TotalValue > key {
+				i++
+			}
+			for arr[j].TotalValue < key {
+				j--
+			}
+			if i <= j {
+				arr[i], arr[j] = arr[j], arr[i]
+				i++
+				j--
+			}
+		}
+		if start < j {
+			quickSubValueArray(arr, start, j)
+		}
+		if end > i {
+			quickSubValueArray(arr, i, end)
+		}
+	}
+}
+
+func quickSubXhArray(arr []BrandItem, start, end int) {
+	if start < end {
+		i, j := start, end
+		key := arr[(start+end)/2].xh
+		for i <= j {
+			for arr[i].xh < key {
+				i++
+			}
+			for arr[j].xh > key {
+				j--
+			}
+			if i <= j {
+				arr[i], arr[j] = arr[j], arr[i]
+				i++
+				j--
+			}
+		}
+		if start < j {
+			quickSubXhArray(arr, start, j)
+		}
+		if end > i {
+			quickSubXhArray(arr, i, end)
+		}
+	}
+}
 
 func quickSort(arr []BrandItem, start, end int) {
 	if start < end {
