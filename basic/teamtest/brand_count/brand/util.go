@@ -2,6 +2,8 @@ package brand
 
 import (
 	"bytes"
+	"reflect"
+	"unsafe"
 )
 
 func lasIndex(s []byte, c byte) int {
@@ -38,6 +40,17 @@ func hashBytes(data []byte) uint64 {
 		h = (h ^ uint64(c)) * 10245
 	}
 	return h
+}
+
+func Bytes2String(b []byte) (s string) {
+	if len(b) == 0 {
+		return ""
+	}
+	pbytes := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+	pstring := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	pstring.Data = pbytes.Data
+	pstring.Len = pbytes.Len
+	return
 }
 
 //把字符数组转化为无符号整型

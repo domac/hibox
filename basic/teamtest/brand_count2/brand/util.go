@@ -1,5 +1,10 @@
 package brand
 
+import (
+	"reflect"
+	"unsafe"
+)
+
 func lasIndex(s []byte, c byte) int {
 	for i := len(s) - 1; i >= 1; i-- {
 		if s[i] == c {
@@ -77,4 +82,19 @@ func combinehashBytes(data []byte, xh int) uint64 {
 		h = (h ^ uint64(c)) * 1099511628211
 	}
 	return h + uint64(xh)
+}
+
+func Bytes2String(b []byte) (s string) {
+	lb := len(b)
+	if lb == 0 {
+		return ""
+	}
+
+	news := make([]byte, lb)
+	copy(news, b)
+	pbytes := (*reflect.SliceHeader)(unsafe.Pointer(&news))
+	pstring := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	pstring.Data = pbytes.Data
+	pstring.Len = pbytes.Len
+	return
 }

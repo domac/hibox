@@ -3,6 +3,7 @@ package brand
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -12,10 +13,9 @@ const TOPNUM = 40
 //全局变量
 var (
 	BRANDKEYS  = make(map[uint64]int, 30000000)
-	ONLINESMAP = make(map[uint64]bool, 10000000)
+	ONLINESMAP = make(map[uint64]bool, 70000000)
 	BRANDDB    = []int{}
 	toplist    [TOPNUM]BrandItem
-	//topMap     = make(map[uint64]int)
 
 	dataList  = []int{}
 	namedList = []string{}
@@ -75,8 +75,6 @@ func ReadAndHandle(dataFile string) error {
 	defer f.Close()
 	s := bufio.NewScanner(f)
 
-	//公共临时变量
-
 	for s.Scan() {
 		b := s.Bytes()
 		index1 := lasIndexN(b, 9, 32)
@@ -92,7 +90,7 @@ func ReadAndHandle(dataFile string) error {
 			price := b[index2+1 : index1]
 			combineHashHey := combinehashBytes(onlineDate, xh)
 			BRANDDB[xh] += parsebyteToInt(price)
-			if _, ok := ONLINESMAP[combineHashHey]; !ok {
+			if !ONLINESMAP[combineHashHey] {
 				ONLINESMAP[combineHashHey] = true
 				dv := dataList[xh] + 1
 				dataList[xh] = dv
@@ -117,12 +115,13 @@ func ListResult() {
 		d := dataList[idx]
 		tv := BRANDDB[idx]
 		name := namedList[idx]
-
 		if d > 1000 {
 			values[cid] = BrandItem{Name: name, TotalValue: tv, DateCount: d, xh: idx}
 			cid++
 		}
 	}
+	log.Println(">> quick sort")
+
 	quickSort(values, 0, len(values)-1)
 
 	newCount := TOPNUM + 5
@@ -132,7 +131,10 @@ func ListResult() {
 		values2 = append(values2, vi)
 	}
 
+	log.Println(">> value sort")
 	values2 = compareSortValue(values2)
+
+	log.Println(">> xh sort")
 	values2 = compareSortXh(values2)
 
 	for i := 0; i < TOPNUM; i++ {
@@ -149,9 +151,7 @@ func compareSortValue(arr []BrandItem) []BrandItem {
 	currentStartIndex := 0
 	for i := 1; i < lenS; i++ {
 		targetDateCount := arr[i].DateCount
-		if currentDateCount == targetDateCount {
-			//currentStartIndex++
-		} else if currentDateCount > targetDateCount {
+		if currentDateCount > targetDateCount {
 			currentDateCount = targetDateCount
 			quickSubValueArray(arr, currentStartIndex, i-1)
 			currentStartIndex = i
@@ -170,9 +170,7 @@ func compareSortXh(arr []BrandItem) []BrandItem {
 		targetDateCount := arr[i].DateCount
 		targetTotalValue := arr[i].TotalValue
 
-		if currentDateCount == targetDateCount && currentTotalValue == targetTotalValue {
-
-		} else if currentDateCount > targetDateCount || currentTotalValue > targetTotalValue {
+		if currentDateCount > targetDateCount || currentTotalValue > targetTotalValue {
 			currentDateCount = targetDateCount
 			currentTotalValue = targetTotalValue
 			quickSubXhArray(arr, currentStartIndex, i-1)
