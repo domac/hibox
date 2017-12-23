@@ -151,7 +151,7 @@ func compareSortValue(arr []BrandItem) []BrandItem {
 	currentStartIndex := 0
 	for i := 1; i < lenS; i++ {
 		targetDateCount := arr[i].DateCount
-		if currentDateCount > targetDateCount {
+		if currentDateCount > targetDateCount || i == lenS-1 {
 			currentDateCount = targetDateCount
 			quickSubValueArray(arr, currentStartIndex, i-1)
 			currentStartIndex = i
@@ -170,7 +170,7 @@ func compareSortXh(arr []BrandItem) []BrandItem {
 		targetDateCount := arr[i].DateCount
 		targetTotalValue := arr[i].TotalValue
 
-		if currentDateCount > targetDateCount || currentTotalValue > targetTotalValue {
+		if currentDateCount > targetDateCount || currentTotalValue > targetTotalValue || i == lenS-1 {
 			currentDateCount = targetDateCount
 			currentTotalValue = targetTotalValue
 			quickSubXhArray(arr, currentStartIndex, i-1)
