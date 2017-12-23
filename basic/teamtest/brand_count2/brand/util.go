@@ -98,3 +98,18 @@ func Bytes2String(b []byte) (s string) {
 	pstring.Len = pbytes.Len
 	return
 }
+
+func Date2int(b []byte) int {
+	monid := 0
+	for i := 4; i < len(b); i++ {
+		c := b[i] - 48
+		if c == 253 {
+			monid = i
+		}
+	}
+	year := parsebyteToInt(b[2:4]) - 7
+	month := parsebyteToInt(b[5:monid]) - 1
+	day := parsebyteToInt(b[monid+1:])
+	count := year*365 + month*30 + day
+	return count
+}
