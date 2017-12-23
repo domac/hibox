@@ -3,6 +3,7 @@ package brand
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -192,8 +193,12 @@ func ListResult() {
 		item.TotalValue = BRANDDB[item.xh]
 		values = append(values, item)
 	}
+
+	log.Println(">> quick sort")
 	quickSort(values, 0, len(values)-1)
-	compareSort(values)
+
+	log.Println(">> xh sort")
+	values = compareSort(values)
 	for i, item := range values {
 		if item.xh < 0 {
 			continue
@@ -203,12 +208,43 @@ func ListResult() {
 	fmt.Println("------- finish -------")
 }
 
-func compareSort(arr []BrandItem) {
-	for i := 0; i < len(arr)-1; i++ {
-		if arr[i].TotalValue == arr[i+1].TotalValue {
-			if arr[i].xh > arr[i+1].xh {
-				arr[i], arr[i+1] = arr[i+1], arr[i]
+func compareSort(arr []BrandItem) []BrandItem {
+	lenS := len(arr)
+	currentTotalValue := arr[0].TotalValue
+	currentStartIndex := 0
+	for i := 1; i < lenS; i++ {
+		targetTotalValue := arr[i].TotalValue
+		if currentTotalValue > targetTotalValue || i == lenS-1 {
+			currentTotalValue = targetTotalValue
+			quickSubXhArray(arr, currentStartIndex, i-1)
+			currentStartIndex = i
+		}
+	}
+	return arr
+}
+
+func quickSubXhArray(arr []BrandItem, start, end int) {
+	if start < end {
+		i, j := start, end
+		key := arr[(start+end)/2].xh
+		for i <= j {
+			for arr[i].xh < key {
+				i++
 			}
+			for arr[j].xh > key {
+				j--
+			}
+			if i <= j {
+				arr[i], arr[j] = arr[j], arr[i]
+				i++
+				j--
+			}
+		}
+		if start < j {
+			quickSubXhArray(arr, start, j)
+		}
+		if end > i {
+			quickSubXhArray(arr, i, end)
 		}
 	}
 }
