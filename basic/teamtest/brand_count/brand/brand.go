@@ -82,8 +82,6 @@ func ReadAndHandle(dataFile string) error {
 		}
 
 		index2 := lasIndexIdx(b, index1, 32)
-		price := b[index2+1 : index1]
-
 		index3 := lasIndexIdx(b, index2, 32)
 
 		//not equals 'N'
@@ -96,6 +94,7 @@ func ReadAndHandle(dataFile string) error {
 
 		hashKey := hashBytes(name)
 		if xh, ok := BRANDKEYS[hashKey]; ok {
+			price := b[index2+1 : index1]
 			currentValue := BRANDDB[xh] + parsebyteToInt(price)
 			BRANDDB[xh] = currentValue
 			updateTopList(name, hashKey, xh, currentValue)
