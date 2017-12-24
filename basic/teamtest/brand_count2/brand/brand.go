@@ -12,21 +12,20 @@ const TOPNUM = 40
 
 //全局变量
 var (
-	BRANDKEYS  = make(map[uint64]int, 30000000)
-	ONLINESMAP = make(map[uint64]bool, 70000000)
+	BRANDKEYS  = make(map[uint64]uint32, 30000000)
+	ONLINESMAP = make(map[uint64]byte, 70000000)
 	BRANDDB    = []int{}
-	toplist    [TOPNUM]BrandItem
 
-	dataList  = []int{}
+	dataList  = []uint32{}
 	namedList = []string{}
 )
 
 type BrandItem struct {
 	Name    string
 	HashKey uint64
-	xh      int
+	xh      uint32
 
-	DateCount  int
+	DateCount  uint32
 	TotalValue int
 }
 
@@ -42,13 +41,13 @@ func InitKeys(dataFile string) error {
 		if b := s.Bytes(); b != nil {
 			//逆向切割
 			hashKey := hashBytes(b)
-			BRANDKEYS[hashKey] = idx
+			BRANDKEYS[hashKey] = uint32(idx)
 			idx++
 		}
 	}
 	keysLen := idx
 	BRANDDB = make([]int, keysLen, keysLen)
-	dataList = make([]int, keysLen, keysLen)
+	dataList = make([]uint32, keysLen, keysLen)
 	namedList = make([]string, keysLen, keysLen)
 
 	for i := 0; i < keysLen; i++ {
@@ -57,11 +56,6 @@ func InitKeys(dataFile string) error {
 		namedList[i] = ""
 	}
 
-	for i := 0; i < TOPNUM; i++ {
-		toplist[i] = BrandItem{
-			xh: -1,
-		}
-	}
 	return nil
 }
 
@@ -88,10 +82,10 @@ func ReadAndHandle(dataFile string) error {
 		if xh, ok := BRANDKEYS[hashKey]; ok {
 			onlineDate := b[index1+1:]
 			price := b[index2+1 : index1]
-			combineHashHey := combinehashBytes(onlineDate, xh)
+			combineHashHey := combinehashBytes32(onlineDate, xh)
 			BRANDDB[xh] += parsebyteToInt(price)
-			if !ONLINESMAP[combineHashHey] {
-				ONLINESMAP[combineHashHey] = true
+			if _, ok := ONLINESMAP[combineHashHey]; !ok {
+				ONLINESMAP[combineHashHey] = '1'
 				dv := dataList[xh] + 1
 				dataList[xh] = dv
 				if dv == 1 {
@@ -107,7 +101,6 @@ func ReadAndHandle(dataFile string) error {
 //输出结果
 func ListResult() {
 
-	ONLINESMAP = nil
 	values := make([]BrandItem, len(BRANDKEYS), len(BRANDKEYS))
 
 	cid := 0
@@ -143,6 +136,8 @@ func ListResult() {
 	}
 
 	fmt.Println("------- finish -------")
+	ONLINESMAP = make(map[uint64]byte, 0)
+	ONLINESMAP = nil
 }
 
 func compareSortValue(arr []BrandItem) []BrandItem {

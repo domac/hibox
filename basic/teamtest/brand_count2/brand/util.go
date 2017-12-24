@@ -54,6 +54,18 @@ func parsebyteToUint64(b []byte) (n uint64) {
 	return n
 }
 
+func parsebyteToUint32(b []byte) (n uint32) {
+	for i := 0; i < len(b); i++ {
+		var v byte
+		d := b[i]
+		v = d - 48
+		n *= 10
+		n1 := n + uint32(v)
+		n = n1
+	}
+	return n
+}
+
 func parsebyteToInt(b []byte) (n int) {
 	lenb := len(b)
 	for i := 0; i < lenb; i++ {
@@ -77,6 +89,14 @@ func combineArray(a, b []byte) []byte {
 }
 
 func combinehashBytes(data []byte, xh int) uint64 {
+	var h uint64 = 14695981039346656037
+	for _, c := range data {
+		h = (h ^ uint64(c)) * 1099511628211
+	}
+	return h + uint64(xh)
+}
+
+func combinehashBytes32(data []byte, xh uint32) uint64 {
 	var h uint64 = 14695981039346656037
 	for _, c := range data {
 		h = (h ^ uint64(c)) * 1099511628211
