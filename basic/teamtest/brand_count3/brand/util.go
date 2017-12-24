@@ -84,6 +84,14 @@ func combinehashBytes(data []byte, xh int) uint64 {
 	return h + uint64(xh)
 }
 
+func combinehashBytes32(data []byte, xh uint32) uint64 {
+	var h uint64 = 14695981039346656037
+	for _, c := range data {
+		h = (h ^ uint64(c)) * 1099511628211
+	}
+	return h + uint64(xh)
+}
+
 func Bytes2String(b []byte) (s string) {
 	lb := len(b)
 	if lb == 0 {

@@ -12,21 +12,20 @@ const TOPNUM = 40
 
 //全局变量
 var (
-	BRANDKEYS  = make(map[uint64]int, 30000000)
-	ONLINESMAP = make(map[uint64]int, 70000000)
+	BRANDKEYS  = make(map[uint64]uint32, 30000000)
+	ONLINESMAP = make(map[uint64]uint32, 70000000)
 	BRANDDB    = []int{}
-	toplist    [TOPNUM]BrandItem
 
-	dataList  = []int{}
+	dataList  = []uint32{}
 	namedList = []string{}
 )
 
 type BrandItem struct {
 	Name    string
 	HashKey uint64
-	xh      int
+	xh      uint32
 
-	DateCount  int
+	DateCount  uint32
 	TotalValue int
 }
 
@@ -42,13 +41,13 @@ func InitKeys(dataFile string) error {
 		if b := s.Bytes(); b != nil {
 			//逆向切割
 			hashKey := hashBytes(b)
-			BRANDKEYS[hashKey] = idx
+			BRANDKEYS[hashKey] = uint32(idx)
 			idx++
 		}
 	}
 	keysLen := idx
 	BRANDDB = make([]int, keysLen, keysLen)
-	dataList = make([]int, keysLen, keysLen)
+	dataList = make([]uint32, keysLen, keysLen)
 	namedList = make([]string, keysLen, keysLen)
 
 	for i := 0; i < keysLen; i++ {
@@ -57,11 +56,6 @@ func InitKeys(dataFile string) error {
 		namedList[i] = ""
 	}
 
-	for i := 0; i < TOPNUM; i++ {
-		toplist[i] = BrandItem{
-			xh: -1,
-		}
-	}
 	return nil
 }
 
@@ -89,7 +83,7 @@ func ReadAndHandle(dataFile string) error {
 			price := b[index2+1 : index1]
 			BRANDDB[xh] += parsebyteToInt(price)
 			onlineDate := b[index1+1:]
-			combineHashHey := combinehashBytes(onlineDate, xh)
+			combineHashHey := combinehashBytes32(onlineDate, xh)
 
 			item := ONLINESMAP[combineHashHey] + 1
 			ONLINESMAP[combineHashHey] = item
@@ -119,7 +113,7 @@ func ListResult() {
 		d := dataList[idx]
 		tv := BRANDDB[idx]
 		name := namedList[idx]
-		if d > 3 {
+		if d > 5 {
 			values[cid] = BrandItem{Name: name, TotalValue: tv, DateCount: d, xh: idx}
 			cid++
 		}
@@ -145,7 +139,9 @@ func ListResult() {
 		currentItem := values2[i]
 		fmt.Printf("%d) %s, dateCount: %d, value: %d, xh: %d \n", i+1, currentItem.Name, currentItem.DateCount, currentItem.TotalValue, currentItem.xh)
 	}
-
+	fmt.Println("------- finish -------")
+	ONLINESMAP = make(map[uint64]uint32, 0)
+	ONLINESMAP = nil
 }
 
 func compareSortValue(arr []BrandItem) []BrandItem {
