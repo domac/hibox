@@ -4,7 +4,7 @@ import (
 	b "./brand"
 	"log"
 	"os"
-	//"runtime/debug"
+	"runtime/debug"
 	"time"
 )
 
@@ -21,7 +21,7 @@ import (
 //tYXjAeIYBBYC TXSajPTW CtdfXOrcCjSXSFxijJ ROP_HZ 89424310 2014-5-28
 
 func main() {
-	//debug.SetGCPercent(20)
+	debug.SetGCPercent(20)
 	args := os.Args
 	if len(args) < 2 {
 		log.Fatalln("please input the data file path")

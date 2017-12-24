@@ -92,6 +92,13 @@ func ReadAndHandle(dataFile string) error {
 					namedList[xh] = string(name)
 				}
 			}
+
+			name = name[:0]
+			price = price[:0]
+			onlineDate = onlineDate[:0]
+			name = nil
+			price = nil
+			onlineDate = nil
 		}
 	}
 
