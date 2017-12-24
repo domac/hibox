@@ -108,12 +108,14 @@ func ListResult() {
 		d := dataList[idx]
 		tv := BRANDDB[idx]
 		name := namedList[idx]
-		if d > 1000 {
+		if d > 100 {
 			values[cid] = BrandItem{Name: name, TotalValue: tv, DateCount: d, xh: idx}
 			cid++
 		}
 	}
 	log.Println(">> quick sort")
+
+	values = values[:cid]
 
 	quickSort(values, 0, len(values)-1)
 

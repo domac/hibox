@@ -105,6 +105,8 @@ func ReadAndHandle(dataFile string) error {
 
 //输出结果
 func ListResult() {
+	ONLINESMAP = make(map[uint64]uint32, 0)
+	ONLINESMAP = nil
 
 	values := make([]BrandItem, len(BRANDKEYS), len(BRANDKEYS))
 
@@ -113,11 +115,12 @@ func ListResult() {
 		d := dataList[idx]
 		tv := BRANDDB[idx]
 		name := namedList[idx]
-		if d > 5 {
+		if d > 1 {
 			values[cid] = BrandItem{Name: name, TotalValue: tv, DateCount: d, xh: idx}
 			cid++
 		}
 	}
+	values = values[:cid]
 	log.Println(">> quick sort")
 
 	quickSort(values, 0, len(values)-1)
@@ -140,8 +143,6 @@ func ListResult() {
 		fmt.Printf("%d) %s, dateCount: %d, value: %d, xh: %d \n", i+1, currentItem.Name, currentItem.DateCount, currentItem.TotalValue, currentItem.xh)
 	}
 	fmt.Println("------- finish -------")
-	ONLINESMAP = make(map[uint64]uint32, 0)
-	ONLINESMAP = nil
 }
 
 func compareSortValue(arr []BrandItem) []BrandItem {
