@@ -193,6 +193,11 @@ func ListResult() {
 		values = append(values, item)
 	}
 
+	if len(values) == 0 {
+		log.Fatal("result is null \n")
+		return
+	}
+
 	log.Println(">> quick sort")
 	quickSort(values, 0, len(values)-1)
 
