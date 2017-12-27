@@ -80,7 +80,13 @@ func ReadAndHandle(dataFile string) error {
 		name := b[:index4]
 		hashKey := hashBytes(name)
 		if xh, ok := BRANDKEYS[hashKey]; ok {
+
 			onlineDate := b[index1+1:]
+
+			if string(name) == "ulGAddPGpZWoKCbqVFJucP" {
+				fmt.Println(string(onlineDate))
+			}
+
 			price := b[index2+1 : index1]
 			combineHashHey := combinehashBytes32(onlineDate, xh)
 			BRANDDB[xh] += parsebyteToInt(price)

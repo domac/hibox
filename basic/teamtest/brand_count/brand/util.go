@@ -37,7 +37,7 @@ func lasIndexIdx(s []byte, idx int, c byte) int {
 func hashBytes(data []byte) uint64 {
 	var h uint64 = 14695981039346656037
 	for _, c := range data {
-		h = (h ^ uint64(c)) * 10245
+		h = (h ^ uint64(c)) * 1099511628211
 	}
 	return h
 }

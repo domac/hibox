@@ -91,7 +91,6 @@ func ReadAndHandle(dataFile string) error {
 
 		index4 := lasIndexIdx(b, index3, 32)
 		name := b[:index4]
-
 		hashKey := hashBytes(name)
 		if xh, ok := BRANDKEYS[hashKey]; ok {
 			price := b[index2+1 : index1]
@@ -104,7 +103,7 @@ func ReadAndHandle(dataFile string) error {
 }
 
 func updateTopList(name []byte, hashKey uint64, xh, currentValue int) {
-
+	compareTopList()
 	flag, ok := topMap[hashKey]
 	if !ok || flag == 0 {
 
