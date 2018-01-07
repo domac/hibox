@@ -6,6 +6,7 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"runtime/pprof"
 )
 
 const (
@@ -16,6 +17,10 @@ const (
 )
 
 func main() {
+
+	pprof.StartCPUProfile(os.Stdout)
+	defer pprof.StopCPUProfile()
+
 	f, err := os.Create(output)
 	if err != nil {
 		log.Fatal(err)
