@@ -148,12 +148,11 @@ func main() {
 	riskCalls := FindNonConstCalls(res.CallGraph, qms)
 
 	if len(riskCalls) == 0 {
+		println("没有发现注入漏洞")
 		return
 	}
 
-	if verbose {
-		fmt.Printf("发现 %d 个潜在的注入风险:\n", len(riskCalls))
-	}
+	fmt.Printf("发现 %d 个潜在的注入风险:\n", len(riskCalls))
 
 	showMap := make(map[string][]ssa.CallInstruction)
 	for _, ci := range riskCalls {
@@ -176,7 +175,7 @@ func main() {
 		println()
 	}
 
-	os.Exit(1)
+	return
 
 }
 
