@@ -56,6 +56,7 @@ func main() {
 	c := loader.Config{}
 
 	for _, pkg := range pkgs {
+		pkg, _ = filepath.Abs(pkg)
 		if strings.Count(pkg, "src") >= 2 {
 			srcIndex := strings.Index(pkg, "src") + 4
 			pkg = pkg[srcIndex:]
