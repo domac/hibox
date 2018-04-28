@@ -52,7 +52,6 @@ func main() {
 	}
 
 	fmt.Println("欢迎使用SQL注入分析工具")
-	println()
 
 	c := loader.Config{}
 
@@ -142,7 +141,7 @@ func main() {
 	})
 
 	if err != nil {
-		fmt.Printf("error performing pointer analysis: %v\n", err)
+		fmt.Printf("执行pointer分析异常: %v\n", err)
 		os.Exit(2)
 	}
 
@@ -153,7 +152,7 @@ func main() {
 	}
 
 	if verbose {
-		fmt.Printf("Found %d potentially unsafe SQL statements:\n", len(riskCalls))
+		fmt.Printf("发现 %d 个潜在的注入风险:\n", len(riskCalls))
 	}
 
 	showMap := make(map[string][]ssa.CallInstruction)
@@ -168,20 +167,15 @@ func main() {
 
 	for fileName, cis := range showMap {
 		dir := filepath.Dir(fileName)
-		fmt.Printf("%s\n", dir)
+		fmt.Printf("\n%s", dir)
 		for _, ci := range cis {
 			pos := loaderProg.Fset.Position(ci.Pos())
 			c := strings.Replace(pos.String(), dir, "", 1)
-			fmt.Printf("+ %s\n", c[1:])
+			fmt.Printf("\n+ %s", c[1:])
 		}
 		println()
 	}
 
-	if verbose {
-		fmt.Println("Please ensure that all SQL queries you use are compile-time constants.")
-		fmt.Println("You should always use parameterized queries or prepared statements")
-		fmt.Println("instead of building queries from strings.")
-	}
 	os.Exit(1)
 
 }
