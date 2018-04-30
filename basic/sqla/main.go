@@ -264,9 +264,7 @@ func findQueryMethods(sp sqlPackage, targetPkg *types.Package, ssaProg *ssa.Prog
 			if !m.Exported() {
 				continue
 			}
-			//println("------", m.String())
 			s := m.Type().(*types.Signature)
-			//println(s.String())
 			if num, ok := FuncHasQuery(sp, s); ok {
 				methods = append(methods, &QueryMethod{
 					Func:     m,
