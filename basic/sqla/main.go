@@ -59,7 +59,7 @@ func main() {
 
 		if pkg[0] == '/' || pkg[0] == '~' {
 			pkg, _ = filepath.Abs(pkg)
-			if strings.Count(pkg, "src") >= 2 {
+			if strings.Count(pkg, "src") >= 1 {
 				srcIndex := strings.Index(pkg, "src") + 4
 				pkg = pkg[srcIndex:]
 			}
