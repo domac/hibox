@@ -12,6 +12,28 @@ import (
 	"strings"
 )
 
+type Result struct {
+	Info []string
+	Errs []string
+}
+
+func NewResult() *Result {
+	return &Result{
+		Info: []string{},
+		Errs: []string{},
+	}
+}
+
+func (r *Result) AddInfo(info string, args ...interface{}) {
+	s := fmt.Sprintf(info, args...)
+	r.Info = append(r.Info, s)
+}
+
+func (r *Result) AddError(errs string, args ...interface{}) {
+	s := fmt.Sprintf(errs, args...)
+	r.Errs = append(r.Errs, s)
+}
+
 //涉及查询方法结构
 type QueryFunctionModel struct {
 	Func     *types.Func
@@ -20,9 +42,10 @@ type QueryFunctionModel struct {
 	Param    int
 }
 
-func DoScan(pkgs []string) []string {
+//扫描函数
+func DoScan(pkgs []string) *Result {
 
-	result := []string{}
+	result := NewResult()
 
 	c := loader.Config{}
 
@@ -41,8 +64,7 @@ func DoScan(pkgs []string) []string {
 	loaderProg, err := c.Load()
 
 	if err != nil {
-		s := fmt.Sprintf("加载包异常 %v: %v", pkgs, err)
-		result = append(result, s)
+		result.AddError("加载包异常 %v: %v", pkgs, err)
 		return result
 	}
 
@@ -62,15 +84,13 @@ func DoScan(pkgs []string) []string {
 	for i := range scanPckagesList {
 		//是否存在目标分析的包
 		if _, exists := imports[scanPckagesList[i].packageName]; exists {
-			s := fmt.Sprintf("待检测库: %s", scanPckagesList[i].packageName)
-			result = append(result, s)
+			result.AddInfo("待检测库: %s", scanPckagesList[i].packageName)
 			scanPckagesList[i].enable = true
 			existOne = true
 		}
 	}
 	if !existOne {
-		s := fmt.Sprintf("在%v的包中没有含有所支持的database driver", pkgs)
-		result = append(result, s)
+		result.AddError("在%v的包中没有含有所支持的database driver", pkgs)
 		return result
 	}
 
@@ -88,12 +108,11 @@ func DoScan(pkgs []string) []string {
 	}
 
 	//if verbose {
-	s := fmt.Sprintln("database driver 待检测函数:")
-	result = append(result, s)
+	result.AddInfo("database driver 待检测函数:")
 	for _, m := range qms {
 		fmt.Printf(" ~ %s (目标参数位置 %d)\n", m.Func, m.Param)
 	}
-	result = append(result, "")
+	result.AddInfo("")
 	//}
 
 	//获取包含main方法的包
@@ -110,7 +129,7 @@ func DoScan(pkgs []string) []string {
 	}(loaderProg, ssaProg)
 
 	if len(mains) == 0 {
-		result = append(result, "没有找到相关main方法")
+		result.AddError("目前包中没有找到入口相关的main方法")
 		return result
 	}
 
@@ -121,8 +140,7 @@ func DoScan(pkgs []string) []string {
 	})
 
 	if err != nil {
-		s := fmt.Sprintf("执行pointer分析异常: %v", err)
-		result = append(result, s)
+		result.AddInfo("执行pointer分析异常: %v", err)
 		return result
 	}
 
@@ -133,7 +151,7 @@ func DoScan(pkgs []string) []string {
 		return result
 	}
 
-	result = append(result, fmt.Sprintf("发现 %d 个潜在的注入风险:", len(riskCalls)))
+	result.AddInfo("发现 %d 个潜在的注入风险:", len(riskCalls))
 
 	showMap := make(map[string][]ssa.CallInstruction)
 	for _, ci := range riskCalls {
@@ -147,13 +165,13 @@ func DoScan(pkgs []string) []string {
 
 	for fileName, cis := range showMap {
 		dir := filepath.Dir(fileName)
-		result = append(result, fmt.Sprintf("%s", dir))
+		result.AddInfo("%s", dir)
 		for _, ci := range cis {
 			pos := loaderProg.Fset.Position(ci.Pos())
 			c := strings.Replace(pos.String(), dir, "", 1)
-			result = append(result, fmt.Sprintf("+ %s", c[1:]))
+			result.AddInfo("+ %s", c[1:])
 		}
-		result = append(result, "")
+		result.AddInfo("")
 	}
 
 	return result

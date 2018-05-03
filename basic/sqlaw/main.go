@@ -15,6 +15,7 @@ const (
 	windowHeight = 600
 )
 
+//主面板
 var indexHTML = `
 <!doctype html>
 <html>
@@ -24,8 +25,8 @@ var indexHTML = `
 	<body>
 		<br>
 		<button onclick="external.invoke('opendir')">选择目录</button>
-		<input id="scandir" type="text" />
-		<button onclick="external.invoke('changeDir:'+document.getElementById('scandir').value)">
+		<input id="scandir" type="text" style="width:600px;" />
+		<button id="scanbutton" onclick="external.invoke('changeDir:'+document.getElementById('scandir').value)">
 			扫描
 		</button>
 		<!-- <input id="new-color" value="#e91e63" type="color" /> -->
@@ -35,8 +36,7 @@ var indexHTML = `
 </html>
 `
 
-func startServer() string {
-
+func startTool() string {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		log.Fatal(err)
@@ -69,21 +69,27 @@ func handleRPC(w webview.WebView, data string) {
 		w.Eval("document.getElementById('scandir').value='" + dir + "'")
 	case strings.HasPrefix(data, "changeDir:"):
 		scanDir := strings.TrimPrefix(data, "changeDir:")
-		//consolePrint(w, scanDir)
 		res := scanner.DoScan([]string{scanDir})
-		//println(string(res))
-		//consolePrint(w, "完成:"+string(res))
-		for _, s := range res {
+
+		if len(res.Errs) > 0 {
+			errMsg := ""
+			for _, s := range res.Errs {
+				s += "\n"
+				errMsg += s
+			}
+			w.Dialog(webview.DialogTypeAlert, webview.DialogFlagError, "错误信息", errMsg)
+		}
+
+		consolePrint(w, "")
+		for _, s := range res.Info {
 			s += "<br>"
 			w.Eval("document.getElementById('checkresult').innerHTML+='" + s + "'")
 		}
-		//consolePrint(w, out)
-
 	}
 }
 
 func main() {
-	url := startServer()
+	url := startTool()
 	w := webview.New(webview.Settings{
 		Width:     windowWidth,
 		Height:    windowHeight,
