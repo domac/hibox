@@ -47,6 +47,7 @@ func getPtrObjectType(obj interface{}) reflect.Type {
 	return reflect.TypeOf(obj).Elem()
 }
 
+//database/sql rows 扫描
 func Scan(rows Rows, target interface{}) error {
 	if nil == target || getObjectValue(target).IsNil() || getObjectType(target).Kind() != reflect.Ptr {
 		return ErrTargetNotSettable
@@ -100,21 +101,26 @@ func GetRowsDatas(rows Rows) ([]map[string]interface{}, error) {
 
 func multiResults(arr []map[string]interface{}, target interface{}) error {
 	valueObj := getPtrObjectValue(target)
+
+	//判断目标是否可设置
 	if !valueObj.CanSet() {
 		return ErrTargetNotSettable
 	}
 
 	length := len(arr)
 	valueSliceObj := reflect.MakeSlice(valueObj.Type(), 0, length)
-	typeObj := valueSliceObj.Type().Elem()
+
+	//[]*Person{} / []Person{}
+	typeObj := valueSliceObj.Type()
+
 	var err error
 	for i := 0; i < length; i++ {
-		target := reflect.New(typeObj)
-		err = singleResult(arr[i], target.Interface())
+		newtargetValue := reflect.New(typeObj.Elem())
+		err = singleResult(arr[i], newtargetValue.Interface())
 		if nil != err {
 			return err
 		}
-		valueSliceObj = reflect.Append(valueSliceObj, target.Elem())
+		valueSliceObj = reflect.Append(valueSliceObj, newtargetValue.Elem())
 	}
 	valueObj.Set(valueSliceObj)
 	return nil
@@ -133,10 +139,10 @@ func singleResult(result map[string]interface{}, target interface{}) (resp error
 
 	//需递归知道获取真实类型位置
 	if kind == reflect.Ptr {
-		targetInstance := reflect.New(typeObj.Elem())
-		err := singleResult(result, targetInstance.Interface())
+		newtargetValue := reflect.New(typeObj.Elem())
+		err := singleResult(result, newtargetValue.Interface())
 		if nil == err {
-			valueObj.Set(targetInstance)
+			valueObj.Set(newtargetValue)
 		}
 		return err
 	}
@@ -164,6 +170,7 @@ func singleResult(result map[string]interface{}, target interface{}) (resp error
 	return nil
 }
 
+//直接赋值
 func directSet(sourceVal interface{}, rTargetVal reflect.Value) bool {
 	sourceType := reflect.TypeOf(sourceVal)
 	if nil == sourceType {
