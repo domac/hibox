@@ -8,7 +8,6 @@ import (
 	"golang.org/x/tools/go/pointer"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -44,7 +43,7 @@ func DoScan(pkgs []string) []string {
 	if err != nil {
 		s := fmt.Sprintf("加载包异常 %v: %v", pkgs, err)
 		result = append(result, s)
-		os.Exit(2)
+		return result
 	}
 
 	//整理import的所有包路径（文件头的import信息）
@@ -72,7 +71,7 @@ func DoScan(pkgs []string) []string {
 	if !existOne {
 		s := fmt.Sprintf("在%v的包中没有含有所支持的database driver", pkgs)
 		result = append(result, s)
-		os.Exit(2)
+		return result
 	}
 
 	//构建SSA程序
@@ -112,7 +111,7 @@ func DoScan(pkgs []string) []string {
 
 	if len(mains) == 0 {
 		result = append(result, "没有找到相关main方法")
-		os.Exit(2)
+		return result
 	}
 
 	//指向分析
@@ -124,7 +123,7 @@ func DoScan(pkgs []string) []string {
 	if err != nil {
 		s := fmt.Sprintf("执行pointer分析异常: %v", err)
 		result = append(result, s)
-		os.Exit(2)
+		return result
 	}
 
 	riskCalls := FindNonConstCalls(res.CallGraph, qms)
