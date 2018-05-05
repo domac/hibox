@@ -21,7 +21,7 @@ func BenchmarkFiltNameWithCache(b *testing.B) {
 		u := &User{}
 		u.Name = "dom"
 		u.Age = i
-		FiltNameWithCache(u, "can you give me some beer?")
+		FiltNameWithReuseOffset(u, "can you give me some beer?")
 	}
 
 }
