@@ -1,0 +1,2 @@
+#!/bin/bash
+fpm -s dir -t rpm --license "GPLv3" --url "lihaoquan.me" --description "lihaoquan.me"  -n domac-agent -v 0.2.8 --vendor domac --iteration 1.el7 --category 'Domac/Server' --post-install agent-afterinstall.sh  -C ./  -p ./
