@@ -1,6 +1,6 @@
 CURDIR := $(shell pwd)
 BINDIR = $(CURDIR)/../Setup3/Bin/service
-CUSTOM_GOPATH = /home/svn/public/pcmgr_enterprise
+CUSTOM_GOPATH = /home/svn/public/go
 
 # 过滤目录
 #GOFILES := $(shell find . -name "*.go" -type f -not -path "./vendor/*")
