@@ -1,5 +1,5 @@
 CURDIR := $(shell pwd)
-BINDIR = $(CURDIR)/../Setup/Bin/service
+BINDIR = $(CURDIR)/../Setup/bin/project
 CUSTOM_GOPATH = 
 
 # 过滤目录
