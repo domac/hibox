@@ -1,10 +1,10 @@
 CURDIR := $(shell pwd)
-BINDIR = $(CURDIR)/../Setup/bin/project
+BINDIR = $(CURDIR)/../Setup/Bin/service
 CUSTOM_GOPATH = 
 
 # 过滤目录
 #GOFILES := $(shell find . -name "*.go" -type f -not -path "./vendor/*")
-EXCLUDE_DIRS = bin vendor script  
+EXCLUDE_DIRS = bin vendor script 
 SAAS_EXCLUDE_DIRS = common
 
 # 编译文件后缀
@@ -26,26 +26,29 @@ $(shell mkdir -p $(BINDIR))
 # 构建输出目录
 BLDDIR = $(shell cd $(BINDIR);pwd)
 
-# copy 配置文件
-$(shell cp -r $(CURDIR)/*.conf $(BLDDIR)/)
-$(shell cp -r $(CURDIR)/*.xml $(BLDDIR)/)
 
 # 输出环境编译信息
 export GOPATH := $(CUSTOM_GOPATH):$(CURDIR)/common:$(GOPATH)
 
 .PHONY: clean all $(APPS)
 
-all: debug clean $(APPS)
+all: debug clean fsync $(APPS)
 
 $(APPS): %: $(BLDDIR)/%
+
+fsync:
+	@echo '>>> file sync start'
+	$(shell cp -r $(CURDIR)/*.conf $(BLDDIR)/)
+	$(shell cp -r $(CURDIR)/*.xml $(BLDDIR)/)
 
 debug:
 	$(info GOROOT:$(GOROOT))
 	$(info GOPATH:$(GOPATH))
 	$(info GOOS:$(GOOS))
+	$(info BLDDIR:$(BLDDIR))
 	$(info EXCLUDE_DIRS:$(EXCLUDE_DIRS))
 
-$(BLDDIR)/%: debug
+$(BLDDIR)/%: debug fsync
 
 	@echo '-build app : $* -> $@/bin/$*$(EXT)'
 	@if [ -d $*/src ]; then \
