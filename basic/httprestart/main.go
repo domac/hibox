@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-var addr = *flag.String("addr", ":8088", "Address to listen on")
+var addr = *flag.String("addr", ":8088", "Address to listen on!")
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Response from  %v \n", os.Getpid())
