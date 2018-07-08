@@ -8,18 +8,19 @@ import (
 	"os"
 )
 
-var addr = *flag.String("addr", ":8088", "Address to listen on!")
+var addr = flag.String("addr", ":8080", "Address to listen on!")
+var sname = flag.String("name", "master", "node name")
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Response from  %v \n", os.Getpid())
+	fmt.Fprintf(w, "Response from node [%s]  %v \n", *sname, os.Getpid())
 }
 
 func main() {
 	flag.Parse()
-	fmt.Printf("web server run with addr : %s\n", addr)
+	fmt.Printf("web server run with addr : %s | %s\n", *sname, *addr)
 
 	//创建或复用listener属性
-	ln, err := r.ImportOrCreateListener(addr)
+	ln, err := r.ImportOrCreateListener(*addr)
 	if err != nil {
 		fmt.Printf("unable to import or create a listener : %v \n", err)
 		os.Exit(1)
@@ -28,7 +29,7 @@ func main() {
 	http.HandleFunc("/hello", handler)
 
 	//开发web 服务
-	server, err := r.StartServer(addr, ln)
+	server, err := r.StartServer(*addr, ln)
 	if err != nil {
 		fmt.Printf("Exiting : %v\n", err)
 		return

@@ -8,8 +8,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -141,15 +141,24 @@ func (s *Server) forkChild() (*os.Process, error) {
 		lnFile,
 	}
 
-	execName, err := os.Executable()
+	// execName, err := os.Executable()
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	var originalWD, _ = os.Getwd()
+
+	environment := append(os.Environ(), ENV_NAME+"="+string(listenerEnv))
+
+	argvs, err := exec.LookPath(os.Args[0])
 	if err != nil {
 		return nil, err
 	}
 
-	environment := append(os.Environ(), ENV_NAME+"="+string(listenerEnv))
+	fmt.Printf("fork child args : %v\n", os.Args)
 
-	p, err := os.StartProcess(execName, []string{execName}, &os.ProcAttr{
-		Dir:   filepath.Dir(execName),
+	p, err := os.StartProcess(argvs, os.Args, &os.ProcAttr{
+		Dir:   originalWD,
 		Env:   environment,
 		Files: files,
 		Sys:   &syscall.SysProcAttr{},
@@ -160,6 +169,7 @@ func (s *Server) forkChild() (*os.Process, error) {
 	return p, nil
 }
 
+//等待信号事件
 func WaitForSignals(server *Server) error {
 	signalCh := make(chan os.Signal, 1024)
 	signal.Notify(signalCh, syscall.SIGHUP, syscall.SIGUSR2, syscall.SIGINT, syscall.SIGTERM)
