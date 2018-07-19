@@ -3,53 +3,44 @@ package main
 import (
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
-var g_RedisLock = make(map[string]*MidRedisLock)
+var mutex = new(sync.RWMutex)
 
-var glockLock sync.RWMutex
+var sema uint32
 
-func GetRedisLock(mid string) *MidRedisLock {
-	glockLock.RLock()
-	defer glockLock.RUnlock()
-	return g_RedisLock[mid]
+func MyLock(i int) {
+	mutex.Lock()
+	println("----", i)
 }
 
-type MidRedisLock struct {
-	mid   string
-	sema  uint32
-	MLock *sync.RWMutex
-}
-
-func NewRedisLock(mid string) *MidRedisLock {
-	return &MidRedisLock{
-		mid:   mid,
-		sema:  uint32(0),
-		MLock: new(sync.RWMutex),
-	}
-}
-
-type TestModel struct {
-	TMidRedisLock *MidRedisLock
-}
-
-func (t *TestModel) TaskSeqLock(mid string) {
-	t.TMidRedisLock = GetRedisLock(mid)
-
-	if t.TMidRedisLock == nil {
-		glockLock.Lock()
-		if t.TMidRedisLock == nil {
-			midRedisLock := NewRedisLock(mid)
-			t.TMidRedisLock = midRedisLock
-			g_RedisLock[mid] = midRedisLock
+func MySafeLock(i int) {
+	for {
+		if atomic.LoadUint32(&sema) == 0 {
+			break
 		}
-		glockLock.Unlock()
 	}
 
-	if atomic.CompareAndSwapUint32(&t.TMidRedisLock.sema, 0, 1) {
-		t.TMidRedisLock.MLock.Lock()
+	if atomic.CompareAndSwapUint32(&sema, 0, 1) {
+		mutex.Lock()
+		println("----", i)
 	}
+}
+
+func MyUnlock() {
+	mutex.Unlock()
+	atomic.StoreUint32(&sema, 0)
 }
 
 func main() {
+
+	MySafeLock(1)
+	MySafeLock(2)
+	println("00001")
+
+	MyUnlock()
+	MyUnlock()
+
+	time.Sleep(5 * time.Second)
 }
