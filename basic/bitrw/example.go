@@ -12,7 +12,8 @@ type ByteBuffer struct {
 
 func NewByteBuffer() *ByteBuffer {
 	return &ByteBuffer{
-		B: make([]byte, 0, 10),
+		//B: make([]byte, 0, 10),
+		B: make([]byte, 0, 0),
 	}
 }
 
