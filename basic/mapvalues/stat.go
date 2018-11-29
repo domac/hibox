@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -19,7 +18,6 @@ type ConnscStat struct {
 	cmdcount    int
 
 	MissCalls map[uint32]uint64
-	mu        sync.RWMutex
 
 	allowMutex  sync.RWMutex
 	rejectMutex sync.RWMutex
@@ -55,23 +53,28 @@ func NewConnscStat(routeMap map[uint32]int) (*ConnscStat, error) {
 }
 
 func (cs *ConnscStat) PrintStats() {
-	cs.mu.Lock()
+
+	cs.allowMutex.Lock()
 	for cmd, _ := range cs.AllowCalls {
 		log.Printf(">>> cmd [%d] allow  calls count: %d\n", cmd, cs.AllowCalls[cmd])
 		cs.AllowCalls[cmd] = 0
 	}
+	cs.allowMutex.Unlock()
 
+	cs.allowMutex.Lock()
 	for cmd, _ := range cs.RejectCalls {
 		log.Printf(">>> cmd [%d] reject calls count: %d\n", cmd, cs.RejectCalls[cmd])
 		cs.RejectCalls[cmd] = 0
 	}
+	cs.allowMutex.Unlock()
 
+	cs.missMutex.Lock()
 	for cmd, _ := range cs.MissCalls {
 		log.Printf(">>> cmd [%d] miss   calls count: %d\n", cmd, cs.MissCalls[cmd])
 		cs.MissCalls[cmd] = 0
 	}
 	cs.MissCalls = make(map[uint32]uint64)
-	cs.mu.Unlock()
+	cs.missMutex.Unlock()
 
 }
 
@@ -101,7 +104,7 @@ func (cs *ConnscStat) UpdateAllowCount(cmd uint32) {
 	}
 	cs.allowMutex.Lock()
 	currentCount := cs.AllowCalls[cmd]
-	cs.AllowCalls[cmd] = atomic.AddUint64(&currentCount, 1)
+	cs.AllowCalls[cmd] = currentCount + 1
 	cs.allowMutex.Unlock()
 }
 
@@ -111,7 +114,7 @@ func (cs *ConnscStat) UpdateDenyCount(cmd uint32) {
 	}
 	cs.rejectMutex.Lock()
 	currentCount := cs.RejectCalls[cmd]
-	cs.RejectCalls[cmd] = atomic.AddUint64(&currentCount, 1)
+	cs.RejectCalls[cmd] = currentCount + 1
 	cs.rejectMutex.Unlock()
 
 }
@@ -120,11 +123,11 @@ func (cs *ConnscStat) UpdateMissCount(cmd uint32) {
 	if cs.stop {
 		return
 	}
+	cs.missMutex.Lock()
 	currentCount, ok := cs.MissCalls[cmd]
 	if !ok {
 		currentCount = 0
 	}
-	cs.missMutex.Lock()
-	cs.MissCalls[cmd] = atomic.AddUint64(&currentCount, 1)
+	cs.MissCalls[cmd] = currentCount + 1
 	cs.missMutex.Unlock()
 }

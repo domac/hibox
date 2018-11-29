@@ -46,7 +46,7 @@ func BenchmarkStat(b *testing.B) {
 				stat.UpdateDenyCount(uint32(i % 3))
 				time.Sleep(time.Millisecond * 1)
 
-				//stat.PrintStats()
+				stat.PrintStats()
 			}
 		}
 	})
