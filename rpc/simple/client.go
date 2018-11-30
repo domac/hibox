@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/rpc"
-	"os"
+	"runtime"
+	"time"
+	//"os"
 )
 
 type ReqMsg struct {
@@ -16,17 +19,34 @@ type RespMsg struct {
 	Resp []byte
 }
 
+func RpcDialWithTimeout(network, address string, timeout time.Duration) (*rpc.Client, error) {
+	conn, err := net.DialTimeout(network, address, timeout)
+	if err != nil {
+		return nil, err
+	}
+	return rpc.NewClient(conn), nil
+}
+
 func main() {
 	req := &ReqMsg{1, []byte("hello")}
 
-	cli, err := rpc.Dial("tcp", "0.0.0.0:8000")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	for i := 0; i < 20000; i++ {
+
+		//cli, err := rpc.Dial("tcp", "127.0.0.1:8000")
+
+		cli, err := RpcDialWithTimeout("tcp", "127.0.0.1:8000", 10*time.Second)
+
+		gonum := runtime.NumGoroutine()
+
+		if err != nil {
+			fmt.Println(err, i, gonum)
+			continue
+		}
+
+		var resp RespMsg
+		cli.Call("SendStruct.OnSend", req, &resp)
+
+		fmt.Printf(">>> code:%d, data :%s", resp.Code, string(resp.Resp))
 	}
 
-	var resp RespMsg
-	cli.Call("SendStruct.OnSend", req, &resp)
-
-	fmt.Printf("code:%d, data :%s", resp.Code, string(resp.Resp))
 }

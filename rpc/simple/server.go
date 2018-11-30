@@ -46,6 +46,7 @@ func main() {
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
+			println(err)
 			continue
 		}
 		rpc.ServeConn(conn)
